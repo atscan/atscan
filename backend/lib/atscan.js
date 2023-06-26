@@ -1,0 +1,99 @@
+import { Bson, MongoClient } from "https://deno.land/x/mongo@v0.31.2/mod.ts";
+import { parse, stringify } from "https://deno.land/std@0.184.0/yaml/mod.ts";
+
+const BSKY_OFFICIAL_PDS = [
+  "https://bsky.social",
+];
+
+export class ATScan {
+  constructor(opts = {}) {
+    this.verbose = opts.verbose;
+    this.debug = opts.debug;
+    this.defaultPLC = parse(Deno.readTextFileSync('./spec/plc.yaml'))
+    this.BSKY_OFFICIAL_PDS = BSKY_OFFICIAL_PDS;
+  }
+
+  async init() {
+    this.client = new MongoClient();
+    await this.client.connect("mongodb://127.0.0.1:27017");
+    this.dbRaw = this.client.database("test");
+    this.db = {
+      did: this.dbRaw.collection("did"),
+      pds: this.dbRaw.collection("pds"),
+      meta: this.dbRaw.collection("meta"),
+    };
+  }
+
+  async processPlcExport(plc, after = null) {
+    const url = plc.url + "/export?after=" + (after || "");
+    if (this.debug) {
+      console.log(`ProcessPlcExport: ${url}`);
+    }
+    const req = await fetch(url);
+    const lines = await req.text();
+    const arr = lines.split("\n").map((l) => JSON.parse(l));
+
+    for (const data of arr) {
+      const pdsUrl = data.operation.services?.atproto_pds?.endpoint;
+      const matcher = { did: data.did, src: plc.url };
+      const obj = {
+        did: data.did,
+        src: plc.url,
+        revs: [data],
+        time: new Date().toISOString(),
+        pds: pdsUrl ? [pdsUrl] : [],
+      };
+      let didRev = 0;
+      const found = await this.db.did.findOne(matcher);
+      if (found) {
+        const revFound = found.revs.find((r) => r.cid === data.cid);
+        let updated = false;
+        if (!revFound) {
+          updated = true;
+          didRev = found.revs.length;
+          found.revs.push(data);
+          //found.time = new Date().toISOString()
+          console.log(`DID: Adding new DID revision: ${data.did}@${didRev}`);
+        }
+        if (pdsUrl && !found.pds.includes(pdsUrl)) {
+          updated = true;
+          found.pds.push(pdsUrl);
+        }
+        if (updated) {
+          await this.db.did.updateOne(matcher, {
+            $set: {
+              time: new Date().toISOString(),
+              revs: found.revs,
+              pds: found.pds,
+            },
+          });
+        }
+      } else {
+        console.log(`DID: Adding new DID revision: ${data.did}@0 (init)`);
+        await this.db.did.insertOne(obj);
+      }
+      const pdsFound = await this.db.pds.findOne({ url: pdsUrl });
+      const didId = [data.did, didRev].join("@");
+      if (pdsFound) {
+        if (!pdsFound.plcs.includes(plc.url)) {
+          pdsFound.plcs.push(plcUrl);
+          console.log(`PDS [${pdsUrl}]: Adding new PLC: ${plc.url}`);
+          await this.db.pds.updateOne({ url: pdsUrl }, {
+            $set: { plcs: pdsFound.plcs },
+          });
+        }
+      } else {
+        await this.db.pds.insertOne({
+          url: pdsUrl,
+          plcs: [plc.url],
+          time: new Date().toISOString(),
+        });
+      }
+    }
+    const key = `lastUpdate:${plc.url}`;
+    await this.db.meta.updateOne({ key }, {
+      $set: { key, value: arr[arr.length - 1].createdAt },
+    }, { upsert: true });
+    return arr.length !== 1 ? arr[arr.length - 1].createdAt : false;
+  }
+}
