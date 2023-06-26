@@ -7,18 +7,23 @@
 	import '../app.postcss';
 	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton';
 	import { afterNavigate } from "$app/navigation";
-
-	afterNavigate(() => {
-		console.log('scrolltop');
-    	//window.scrollTo(0, 0);
-  	});
+	import { page } from '$app/stores';
 
 	import hljs from 'highlight.js';
 	import 'highlight.js/styles/github-dark.css';
     import { storeHighlightJs } from '@skeletonlabs/skeleton';
 
-    storeHighlightJs.set(hljs);
+  	import Fa from 'svelte-fa'
+    import { faGithub } from '@fortawesome/free-brands-svg-icons'
 
+	export let data;
+
+	storeHighlightJs.set(hljs);
+
+	afterNavigate(() => {
+		console.log('scrolltop');
+    	//window.scrollTo(0, 0);
+  	});
 </script>
 
 <svelte:head>
@@ -34,13 +39,13 @@
 				<a href="/"><strong class="text-xl ml-4 font-bold text-gray-600 dark:text-gray-300"><span class="text-[#3d81f8]">AT</span>Scan</strong></a>
 				<div class="lg:ml-8 flex">
 					<div class="relative hidden lg:block">
-						<a href="/did" class="btn hover:variant-soft-primary"><span>DIDs</span></a>
+						<a href="/did" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/did'}><span>DIDs</span></a>
 					</div>
 					<div class="relative hidden lg:block">
-						<a href="/pds" class="btn hover:variant-soft-primary"><span>PDS Instances</span></a>
+						<a href="/pds" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/pds'}><span>PDS Instances</span></a>
 					</div>
 					<div class="relative hidden lg:block">
-						<a href="/plc" class="btn hover:variant-soft-primary"><span>PLC Directories</span></a>
+						<a href="/plc" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/plc'}><span>PLC Directories</span></a>
 					</div>
 				</div>
 			</svelte:fragment>
@@ -63,13 +68,22 @@
 					Twitter
 				</a>
 				-->
+				<div class="text-sm opacity-50">v{data.pkg.version}</div>
 				<a
-					class="btn btn-sm variant-ghost-surface hover:variant-soft-primary"
+					class="btn btn-sm variant-ghost-surface hover:variant-soft-primary external"
+					href="https://atproto.com/"
+					target="_blank"
+					rel="noreferrer"
+				>
+					AT Protocol
+				</a>
+				<a
+					class="btn btn-sm variant-ghost-surface hover:variant-soft-primary icon"
 					href="https://github.com/atscan/atscan"
 					target="_blank"
 					rel="noreferrer"
 				>
-					GitHub
+					<i class="fa-brands fa-github"></i>
 				</a>
 				<LightSwitch />
 			</svelte:fragment>
@@ -78,3 +92,4 @@
 	<!-- Page Route Content -->
 	<slot />
 </AppShell>
+
