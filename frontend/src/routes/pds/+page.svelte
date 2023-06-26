@@ -5,10 +5,24 @@
     import { goto } from '$app/navigation';
 	import { writable } from 'svelte/store';
 	import { page } from '$app/stores';
-	import { redirect } from '@sveltejs/kit';
+	import { browser } from '$app/environment'; 
 	
     export let data;
-	const search = writable($page.url.searchParams.get('q'))
+	const search = writable($page.url.searchParams.get('q') || '')
+
+	function gotoNewTableState () {
+		const path = '/pds' + ($search !== '' ? `?q=${$search}` : '')
+		const currentPath = $page.url.pathname + $page.url.search
+		if (currentPath === path) {
+			return null
+		}
+		goto(path, { keepFocus: true, noScroll: true })
+	}
+
+	search.subscribe((val) => {
+		gotoNewTableState()
+		return val
+	})
 
     function selectionHandler (i) {
         return goto(`/pds/${i.detail[0]}`)
@@ -68,35 +82,36 @@
 		}))
 	}
 
-	const filtered = data.pds.filter(d => d.inspect?.lastOnline)
-	let sourceData = JSON.parse(JSON.stringify(filtered))
-	let sourceDataOffline = data.pds.filter(d => !d.inspect?.lastOnline)
+	const baseData = data.pds.filter(d => d.inspect?.lastOnline)
 
+	$: sourceData = JSON.parse(JSON.stringify(baseData)).filter(d => d.inspect?.lastOnline)
+		.filter(i => i.url.match(new RegExp($search, 'i')))
+
+	let sourceDataOffline = data.pds.filter(d => !d.inspect?.lastOnline)
 
 	function formSubmit() {
 		const url = '?q='+$search
-		//goto(url)
+		goto(url)
 		// refilter
-		sourceData = data.pds.filter(d => d.inspect?.lastOnline).filter(i => i.url.match(new RegExp($search, 'i')))
-		genTableSimple()
+		//sourceData = data.pds.filter(d => d.inspect?.lastOnline).filter(i => i.url.match(new RegExp($search, 'i')))
+		//genTableSimple()
 		return false
 	}
 
-	let tableSimple;
-	function genTableSimple () {
-		tableSimple = {
-			// A list of heading labels.
-			head: ['Federation', 'Host', 'Delay', 'Location', 'DIDs', 'PLCs', 'User Domains', 'Last mod'],
-			// The data visibly shown in your table body UI.
-			//body: mapper(sourceData, ['host', 'type', 'plc']),
-			body: tableMapperValuesLocal(sourceData, ['env', 'host', 'ms', 'location', 'didsCount', 'plcs', 'userDomains', 'lastOnline' ]),
-			// Optional: The data returned when interactive is enabled and a row is clicked.
-			meta: tableMapperValues(sourceData, ['host']),
-			// Optional: A list of footer labels.
-			//foot: ['Total', '', '<code class="code">5</code>']
-		};
-	}
-	genTableSimple()
+
+
+	$: tableSimple = {
+		// A list of heading labels.
+		head: ['Federation', 'Host', 'Delay', 'Location', 'DIDs', 'PLCs', 'User Domains', 'Last mod'],
+		// The data visibly shown in your table body UI.
+		//body: mapper(sourceData, ['host', 'type', 'plc']),
+		body: tableMapperValuesLocal(sourceData, ['env', 'host', 'ms', 'location', 'didsCount', 'plcs', 'userDomains', 'lastOnline' ]),
+		// Optional: The data returned when interactive is enabled and a row is clicked.
+		meta: tableMapperValues(sourceData, ['host']),
+		// Optional: A list of footer labels.
+		//foot: ['Total', '', '<code class="code">5</code>']
+	};
+
 
 	const tableSimpleOffline = {
 		// A list of heading labels.
@@ -107,19 +122,15 @@
 
 </script>
 
+<svelte:head>
+	<title>PDS Instances | ATScan</title>
+</svelte:head>
+
 <div class="container mx-auto p-8 space-y-8">
 	<h1 class="h1">PDS Instances ({sourceData.length})</h1>
-
-	<form on:submit={formSubmit} class="flex gap-4">
+	<form on:submit|preventDefault={formSubmit} class="flex gap-4">
 		<input class="input" title="Input (text)" type="text" placeholder="Search for PDS .." bind:value={$search} />
-		<button type="submit" class="btn variant-filled">Search</button>
+		<!--button type="submit" class="btn variant-filled">Search</button-->
 	</form>
-
-	<!--p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p-->
-
-	<!--h2 class="h2">Active instances ({sourceData.length})</h2-->
 	<Table source={tableSimple} interactive={true} on:selected={selectionHandler} />
-
-	<!--<h2 class="h2">Inactive instances ({sourceDataOffline.length})</h2>
-	<Table source={tableSimpleOffline} />-->
 </div>

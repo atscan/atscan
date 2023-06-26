@@ -41,12 +41,11 @@
 
 </script>
 
+<svelte:head>
+	<title>PLC Directories | ATScan</title>
+</svelte:head>
 
 <div class="container mx-auto p-8 space-y-8">
 	<h1 class="h1">PLC Directories ({sourceData.length})</h1>
-
-	<!--p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p-->
-
-	<!--<h2 class="h2">Active directories </h2>-->
 	<Table source={tableSimple} interactive={true} />
 </div>

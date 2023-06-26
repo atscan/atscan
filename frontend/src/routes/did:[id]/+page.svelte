@@ -40,6 +40,10 @@
 	};
 </script>
 
+<svelte:head>
+	<title>{item.did} | ATScan</title>
+</svelte:head>
+
 <div class="container mx-auto p-8 space-y-8">
     <Breadcrumb data={[
         { label: 'DIDs', link: '/did' },
@@ -47,7 +51,7 @@
     ]} />
     <div class="flex gap-8">
         <div>
-           <img src="{identicon(item.did)}" class="w-40 h-40 rounded-2xl bg-gray-200 dark:bg-gray-800 float-left" />
+           <img src={identicon(item.did)} class="w-40 h-40 rounded-2xl bg-gray-200 dark:bg-gray-800 float-left" alt={item.did} />
         </div>
         <div class="grow">
             <h1 class="h1">

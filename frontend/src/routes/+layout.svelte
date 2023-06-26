@@ -6,6 +6,12 @@
 	// Most of your app wide CSS should be put in this file
 	import '../app.postcss';
 	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton';
+	import { afterNavigate } from "$app/navigation";
+
+	afterNavigate(() => {
+		console.log('scrolltop');
+    	//window.scrollTo(0, 0);
+  	});
 
 	import hljs from 'highlight.js';
 	import 'highlight.js/styles/github-dark.css';
@@ -15,13 +21,17 @@
 
 </script>
 
+<svelte:head>
+	<title>ATScan</title>
+</svelte:head>
+
 <!-- App Shell -->
 <AppShell>
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
 		<AppBar>
 			<svelte:fragment slot="lead">
-				<a href="/"><strong class="text-xl uppercase">ATScan</strong></a>
+				<a href="/"><strong class="text-xl ml-4 font-bold text-gray-600 dark:text-gray-300"><span class="text-[#3d81f8]">AT</span>Scan</strong></a>
 				<div class="lg:ml-8 flex">
 					<div class="relative hidden lg:block">
 						<a href="/did" class="btn hover:variant-soft-primary"><span>DIDs</span></a>
@@ -55,7 +65,7 @@
 				-->
 				<a
 					class="btn btn-sm variant-ghost-surface hover:variant-soft-primary"
-					href="https://github.com/burningtree/atscan"
+					href="https://github.com/atscan/atscan"
 					target="_blank"
 					rel="noreferrer"
 				>

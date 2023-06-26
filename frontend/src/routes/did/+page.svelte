@@ -3,20 +3,14 @@
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
     import { dateDistance, identicon } from '$lib/utils.js';
     import { goto } from '$app/navigation';
+    import { Avatar } from '@skeletonlabs/skeleton';
+    
     import { writable } from 'svelte/store';
     import { page } from '$app/stores';
     import { redirect } from '@sveltejs/kit';
     
-
     export let data;
     let search = ""
-    /*search.subscribe(val => {
-        console.log(`/did?q=${val}`)
-        setTimeout(() => {
-            throw redirect(307, `/did?q=${''}`);
-        }, 500)
-    })
-    //*/
 
     function formSubmit () {
         console.log(search)
@@ -83,15 +77,11 @@
 
 </script>
 
+<svelte:head>
+	<title>DIDs | ATScan</title>
+</svelte:head>
+
 <div class="container mx-auto p-8 space-y-8">
 	<h1 class="h1">DIDs</h1>
-
-    <form on:submit={formSubmit}>
-        <input class="input" title="Input (text)" type="text" placeholder="Search for DID .." bind:value={search} />
-    </form>
-
-	<!--p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p-->
-
-	<!--h2 class="h2">Active DIDs ({sourceData.length})</h2-->
 	<Table source={tableSimple} interactive={true} on:selected={selectionHandler} />
 </div>
