@@ -1,16 +1,37 @@
 <script>
     import { Table } from '@skeletonlabs/skeleton';
-	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
+	import { tableMapperValues, tableSourceValues, ProgressBar, ProgressRadial } from '@skeletonlabs/skeleton';
     import { dateDistance, identicon } from '$lib/utils.js';
     import { goto } from '$app/navigation';
-    import { Avatar } from '@skeletonlabs/skeleton';
-    
     import { writable } from 'svelte/store';
     import { page } from '$app/stores';
-    import { redirect } from '@sveltejs/kit';
     
     export let data;
-    let search = ""
+	const search = writable($page.url.searchParams.get('q') || '')
+    $: sourceData = data.did;
+    let originalData = null
+
+    function gotoNewTableState () {
+		const path = '/did' + ($search !== '' ? `?q=${$search}` : '')
+		const currentPath = $page.url.pathname + $page.url.search
+		if (currentPath === path) {
+			return null
+		}
+		goto(path, { keepFocus: true, noScroll: true })
+	}
+
+    let lastWrite = null
+	search.subscribe((val) => {
+        sourceData = null
+        const current = new Date()
+        lastWrite = current
+        setTimeout(() => {
+            if (lastWrite === current) {
+                gotoNewTableState()
+            }
+        }, 350)
+		return val
+	})
 
     function formSubmit () {
         console.log(search)
@@ -43,7 +64,7 @@
                     val = `<div class="flex gap-6">`
                     val += `    <div>`
                     val += `        <div class="text-lg inline-block"><a href="/${did}" class="hover:underline"><span class="opacity-50">did:plc:</span><span class="font-semibold opacity-100">${did.replace(/^did:plc:/, '')}</span></a></div>`
-                    const handles = row.revs[row.revs.length-1].operation.alsoKnownAs.map(h => h.replace(/^at:\/\//, ''))
+                    const handles = row.revs[row.revs.length-1].operation.alsoKnownAs.filter(h => !h.match(/at:\/\/data:x\//)).map(h => h.replace(/^at:\/\//, ''))
                     val += `        <div class="mt-1.5">`
                     val += `            <span class="mr-2 badge text-xs variant-filled ${plc.color} dark:${plc.color} opacity-70 text-white dark:text-black">${plc.name}</span>`
                     val += `            <span>${handles.map(h => `<a href="https://bsky.app/profile/${h}" target="_blank" class="hover:underline">@${h}</a>`).join(', ')}</span>`
@@ -66,14 +87,12 @@
 		    return mappedRow;
         }))
     }
-
-    const sourceData = data.did;
-    const tableSimple = {
-		// A list of heading labels.
-		head: ['', 'DID', '#', 'PLC', 'PDS', 'Last mod'],
-		body: tableMapperValuesLocal(sourceData, ['img', 'did', 'deep', 'srcHost', 'pds', 'time']),
-		meta: tableMapperValues(sourceData, ['did']),
-	};
+    $: tableSimple = {
+        // A list of heading labels.
+        head: ['', 'DID', '#', 'PLC', 'PDS', 'Last mod'],
+        body: tableMapperValuesLocal(sourceData || [], ['img', 'did', 'deep', 'srcHost', 'pds', 'time']),
+        meta: tableMapperValues(sourceData || [], ['did']),
+    };
 
 </script>
 
@@ -83,5 +102,20 @@
 
 <div class="container mx-auto p-8 space-y-8">
 	<h1 class="h1">DIDs</h1>
-	<Table source={tableSimple} interactive={true} on:selected={selectionHandler} />
+    <form on:submit|preventDefault={formSubmit} class="flex gap-4">
+		<input class="input" title="Input (text)" type="text" placeholder="Search for DID .." bind:value={$search} autocomplete='off' spellcheck='false' autocorrect='off' />
+		<!--button type="submit" class="btn variant-filled">Search</button-->
+    </form>
+    {#if sourceData === null}
+        <div class="flex justify-center items-center">
+            <div class="justify-center items-center">
+                <div class="text-center mb-6 text-lg">Searching for <code class="code text-xl">{$search}</code> ...</div>
+                <div class="flex justify-center">
+                    <ProgressRadial />
+                </div>
+            </div>
+        </div>
+    {:else}
+	    <Table source={tableSimple} interactive={true} on:selected={selectionHandler} />
+    {/if}
 </div>

@@ -5,7 +5,6 @@
     import { goto } from '$app/navigation';
 	import { writable } from 'svelte/store';
 	import { page } from '$app/stores';
-	import { browser } from '$app/environment'; 
 	
     export let data;
 	const search = writable($page.url.searchParams.get('q') || '')

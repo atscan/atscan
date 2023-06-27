@@ -8,7 +8,6 @@ export async function load({ fetch, params }) {
     "asc",
   ]);
   return { 
-    pds,
-    plc: await (await fetch("https://api.atscan.net/plc")).json()
+    pds
   };
 }

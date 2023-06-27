@@ -37,7 +37,16 @@ router
   })
   .get("/did", async (ctx) => {
     const out = []
-    for (const did of (await ats.db.did.find({}).sort({ time: -1 }).limit(100).toArray())) {
+    const query = {}
+    let sort = { time: -1 }
+
+    let q = ctx.request.url.searchParams.get('q')?.replace(/^@/, '')
+    if (q) {
+      query.$or = [ { did: { $regex: q }}, { 'revs.operation.alsoKnownAs': { $regex: q }} ]
+      //sort = { score: { $meta: "textScore" } }
+    }
+    console.log(query, sort)
+    for (const did of (await ats.db.did.find(query).sort(sort).limit(100).toArray())) {
         did.srcHost = did.src.replace(/^https?:\/\//, "");
         out.push(did)
     }
