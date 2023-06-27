@@ -18,7 +18,7 @@
 	storeHighlightJs.set(hljs);
 
 	afterNavigate(() => {
-		console.log('scrolltop');
+		//console.log('scrolltop');
     	//window.scrollTo(0, 0);
   	});
 </script>

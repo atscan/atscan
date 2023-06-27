@@ -23,22 +23,31 @@ async function crawl(ats) {
 
     const host = i.url.replace(/^https?:\/\//, "");
     if (!i.dns) {
-      console.log('sending dns request: ', i.url)
+      console.log("sending dns request: ", i.url);
       let dns =
         await (await fetch(`https://dns.google/resolve?name=${host}&type=A`))
           .json();
       i.dns = dns;
       ats.db.pds.updateOne({ url: i.url }, { $set: { dns } });
     }
-    if (!i.ip && (i.dns.Answer && i.dns.Answer.filter(a => a.type === 1).length > 0)) {
-      const ipAddr = i.dns.Answer.filter(a => a.type === 1)[0].data
+    if (
+      !i.ip &&
+      (i.dns.Answer && i.dns.Answer.filter((a) => a.type === 1).length > 0)
+    ) {
+      const ipAddr = i.dns.Answer.filter((a) => a.type === 1)[0].data;
       let ip;
       try {
-        ip =    
-          await (await fetch(`http://ipinfo.io/${ipAddr}?token=${Deno.env.get('IPINFO_TOKEN')}`))
-            .json();
+        ip = await (await fetch(
+          `http://ipinfo.io/${ipAddr}?token=${Deno.env.get("IPINFO_TOKEN")}`,
+        ))
+          .json();
       } catch (e) {}
-      if (ip || (i.ip && i.ip.Question && i.ip && i.ip.Question[0].name !== host+'.') || !i.ip) {
+      if (
+        ip ||
+        (i.ip && i.ip.Question && i.ip &&
+          i.ip.Question[0].name !== host + ".") ||
+        !i.ip
+      ) {
         i.ip = ip;
         ats.db.pds.updateOne({ url: i.url }, { $set: { ip } });
       }
@@ -58,8 +67,7 @@ async function crawl(ats) {
           5000,
           fetch(url, {
             headers: {
-              "User-Agent":
-                "ATScan Crawler",
+              "User-Agent": "ATScan Crawler",
             },
           }),
         );

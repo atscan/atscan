@@ -11,7 +11,7 @@ const app = new Application();
 const router = new Router();
 router
   .get("/pds", async (ctx) => {
-    const out = []
+    const out = [];
     for (const item of (await ats.db.pds.find({}).toArray())) {
       item.host = item.url.replace(/^https?:\/\//, "");
       item.env = (ats.BSKY_OFFICIAL_PDS.includes(item.url) &&
@@ -21,65 +21,75 @@ router
           ? "sandbox"
           : null);
       //item.didsCount = await ats.db.did.countDocuments({ 'pds': { $in: [ item.url ] }})
-      out.push(item)
+      out.push(item);
     }
-    ctx.response.body = out.filter((i) => i.env)
+    ctx.response.body = out.filter((i) => i.env);
   })
   .get("/plc", async (ctx) => {
-    const out = []
+    const out = [];
     for (const plc of ats.defaultPLC) {
-        plc.host = plc.url.replace(/^https?:\/\//, "");
-        plc.didsCount = await ats.db.did.countDocuments({ src: plc.url })
-        plc.lastUpdate = (await ats.db.meta.findOne({ key: `lastUpdate:${plc.url}` })).value
-        out.push(plc)
+      plc.host = plc.url.replace(/^https?:\/\//, "");
+      plc.didsCount = await ats.db.did.countDocuments({ src: plc.url });
+      plc.lastUpdate =
+        (await ats.db.meta.findOne({ key: `lastUpdate:${plc.url}` })).value;
+      out.push(plc);
     }
     ctx.response.body = out;
   })
   .get("/did", async (ctx) => {
-    const out = []
-    const query = {}
-    let sort = { time: -1 }
+    const out = [];
+    const query = {};
+    let sort = { time: -1 };
 
-    let q = ctx.request.url.searchParams.get('q')?.replace(/^@/, '')
+    let q = ctx.request.url.searchParams.get("q")?.replace(/^@/, "");
     if (q) {
-      query.$or = [ { did: { $regex: q }}, { 'revs.operation.alsoKnownAs': { $regex: q }} ]
+      query.$or = [{ did: { $regex: q } }, {
+        "revs.operation.alsoKnownAs": { $regex: q },
+      }];
       //sort = { score: { $meta: "textScore" } }
     }
-    console.log(query, sort)
-    for (const did of (await ats.db.did.find(query).sort(sort).limit(100).toArray())) {
-        did.srcHost = did.src.replace(/^https?:\/\//, "");
-        out.push(did)
+    console.log(query, sort);
+    const count = await ats.db.did.count(query);
+
+    for (
+      const did
+        of (await ats.db.did.find(query).sort(sort).limit(100).toArray())
+    ) {
+      did.srcHost = did.src.replace(/^https?:\/\//, "");
+      out.push(did);
     }
-    ctx.response.body = out;
+
+    ctx.response.headers.append("X-Total-Count", count);
+    ctx.response.body = ctx.request.headers.get("x-ats-wrapped") === "true"
+      ? { count, items: out }
+      : out;
   })
   .get("/:id", async (ctx) => {
     if (!ctx.params.id.match(/^did\:/)) {
-        return ctx.status = 404;
+      return ctx.status = 404;
     }
-    const did = ctx.params.id
-    const item = await ats.db.did.findOne({ did })
-    item.env = ((item.src === "https://plc.directory")
-    ? "bsky"
-    : (item.src === "https://plc.bsky-sandbox.dev")
-        ? "sbox"
-        : null);
-    ctx.response.body = item
+    const did = ctx.params.id;
+    const item = await ats.db.did.findOne({ did });
+    item.env = (item.src === "https://plc.directory")
+      ? "bsky"
+      : (item.src === "https://plc.bsky-sandbox.dev")
+      ? "sbox"
+      : null;
+    ctx.response.body = item;
   })
   .get("/pds/:host", async (ctx) => {
-    const host = ctx.params.host
-    const item = await ats.db.pds.findOne({ url: `https://${host}` })
+    const host = ctx.params.host;
+    const item = await ats.db.pds.findOne({ url: `https://${host}` });
     item.host = item.url.replace(/^https?:\/\//, "");
     item.env = (ats.BSKY_OFFICIAL_PDS.includes(item.url) &&
         item.plcs.includes("https://plc.directory"))
-    ? "bsky"
-    : (item.plcs.includes("https://plc.bsky-sandbox.dev")
-        ? "sandbox"
-        : null);
-    ctx.response.body = item
+      ? "bsky"
+      : (item.plcs.includes("https://plc.bsky-sandbox.dev") ? "sandbox" : null);
+    ctx.response.body = item;
   })
-  .get("/", ctx => {
-    ctx.response.body = "ATScan API"
-  })
+  .get("/", (ctx) => {
+    ctx.response.body = "ATScan API";
+  });
 
 app.use(oakCors()); // Enable CORS for All Routes
 app.use(router.routes());

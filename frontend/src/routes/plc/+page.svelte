@@ -1,7 +1,7 @@
 <script>
     import { Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
-    import { dateDistance } from '$lib/utils.js';
+    import { dateDistance, formatNumber } from '$lib/utils.js';
 
     export let data;
 
@@ -23,7 +23,7 @@
                     val = dateDistance(val)
                 }
                 if (key === 'didsCount') {
-                    val = `<a href="/did?plc=${row.host}" class="hover:underline">${val}</a>`
+                    val = `<a href="/did?plc=${row.host}" class="hover:underline">${formatNumber(val)}</a>`
                 }
                 return mappedRow[key] = val
 		    })

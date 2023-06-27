@@ -1,7 +1,7 @@
 <script>
     import { Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues, ProgressBar, ProgressRadial } from '@skeletonlabs/skeleton';
-    import { dateDistance, identicon } from '$lib/utils.js';
+    import { dateDistance, identicon, formatNumber } from '$lib/utils.js';
     import { goto } from '$app/navigation';
     import { writable } from 'svelte/store';
     import { page } from '$app/stores';
@@ -9,7 +9,6 @@
     export let data;
 	const search = writable($page.url.searchParams.get('q') || '')
     $: sourceData = data.did;
-    let originalData = null
 
     function gotoNewTableState () {
 		const path = '/did' + ($search !== '' ? `?q=${$search}` : '')
@@ -109,13 +108,26 @@
     {#if sourceData === null}
         <div class="flex justify-center items-center">
             <div class="justify-center items-center">
-                <div class="text-center mb-6 text-lg">Searching for <code class="code text-xl">{$search}</code> ...</div>
+                <div class="text-center mb-6 text-lg">
+                    {#if $search}
+                        Searching for <code class="code text-xl">{$search}</code> ...
+                    {:else}
+                        Looking for latest DIDs ...
+                    {/if}
+                </div>
                 <div class="flex justify-center">
                     <ProgressRadial />
                 </div>
             </div>
         </div>
     {:else}
+        <div class="text-xl">
+            {#if $search}
+                Search for <code class="code text-2xl">{$search}</code> ({formatNumber(data.totalCount)}):
+            {:else}
+                All DIDs ({formatNumber(data.totalCount)}):
+            {/if}
+        </div>
 	    <Table source={tableSimple} interactive={true} on:selected={selectionHandler} />
     {/if}
 </div>

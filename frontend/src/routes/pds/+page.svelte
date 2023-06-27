@@ -1,7 +1,7 @@
 <script>
 	import { Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
-	import { dateDistance } from '$lib/utils.js';
+	import { dateDistance, formatNumber } from '$lib/utils.js';
     import { goto } from '$app/navigation';
 	import { writable } from 'svelte/store';
 	import { page } from '$app/stores';
@@ -69,7 +69,7 @@
 					val += `<br /><span class="text-xs">${row.ip?.org || 'n/a'}</span>`
 				}
 				if (key === 'didsCount') {
-					val = `<a href="/did?pds=${row.host}" class="hover:underline">${val}</a>`
+					val = `<a href="/did?pds=${row.host}" class="hover:underline">${formatNumber(val)}</a>`
 				}
 				if (key === 'lastOnline' && row.inspect) {
 					val = row.inspect?.lastOnline ? dateDistance(row.inspect?.lastOnline) : '-'
