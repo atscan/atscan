@@ -15,6 +15,12 @@
         {item.host}
     </h1>
 
+
+    <h2 class="h2">DIDs</h2>
+    <div>
+        <a href="/did?q=pds:{item.host}" class="underline hover:no-underline">List of all DIDs for {item.host}</a>
+    </div>
+
     <h2 class="h2">Source</h2>
     <CodeBlock code={JSON.stringify(item, null, 2)} language="json" />
 

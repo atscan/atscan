@@ -1,20 +1,33 @@
 <script>
     import { Table } from '@skeletonlabs/skeleton';
-	import { tableMapperValues, tableSourceValues, ProgressBar, ProgressRadial } from '@skeletonlabs/skeleton';
+	import { tableMapperValues, tableSourceValues, ProgressBar, ProgressRadial, SlideToggle } from '@skeletonlabs/skeleton';
     import { dateDistance, identicon, formatNumber } from '$lib/utils.js';
     import { goto, beforeNavigate, afterNavigate, invalidate } from '$app/navigation';
     import { writable } from 'svelte/store';
     import { page } from '$app/stores';
+    import { browser } from '$app/environment';
     
     export let data;
-	const search = writable($page.url.searchParams.get('q') || '')
+	const search = writable(data.q || '')
     $: sourceData = data.did;
+    let onlySandbox = data.onlySandbox || null
+    let initialSetupOnlySandbox = null
 
-    afterNavigate(() => {
-  	});
+    function sandboxToggleHandler() {
+        sourceData = null
+        gotoNewTableState()
+    }
 
     function gotoNewTableState () {
-		const path = '/did' + ($search !== '' ? `?q=${$search}` : '')
+        let q = $search || '' 
+        if (onlySandbox && !q.match(/env:sbox/)) {
+            q += " env:sbox"
+            q = q.trim()
+        } else {
+            q = q.replace(/env:sbox/, '')
+        }
+        q = q.trim()
+		const path = '/did' + (q !== '' ? `?q=${q}` : '')
 		const currentPath = $page.url.pathname + $page.url.search
 		if (currentPath === path) {
 			return null
@@ -105,7 +118,15 @@
 <div class="container mx-auto p-8 space-y-8">
 	<h1 class="h1">DIDs</h1>
     <form on:submit|preventDefault={formSubmit} class="flex gap-4">
-		<input class="input" title="Input (text)" type="text" placeholder="Search for DID .." bind:value={$search} autocomplete='off' spellcheck='false' autocorrect='off' />
+        <div class="flex w-full gap-4 items-center justify-center">
+            <div class="grow">
+                <input class="input" title="Input (text)" type="text" placeholder="Search for DID .." bind:value={$search} autocomplete='off' spellcheck='false' autocorrect='off' />
+            </div>
+            <div class="flex items-center gap-2">
+                <div>Only Sandbox</div>
+                <SlideToggle name="slide" bind:checked={onlySandbox} on:change={sandboxToggleHandler} active="bg-ats-sbox dark:bg-ats-sbox" />
+            </div>
+        </div>
 		<!--button type="submit" class="btn variant-filled">Search</button-->
     </form>
     {#if sourceData === null}
@@ -113,7 +134,7 @@
             <div class="justify-center items-center">
                 <div class="text-center mb-6 text-lg">
                     {#if $search}
-                        Searching for <code class="code text-xl">{$search}</code> ...
+                        Searching for <code class="code text-xl">{$search}</code> {#if onlySandbox} (only sandbox){/if}...
                     {:else}
                         Looking for latest DIDs ...
                     {/if}
@@ -126,7 +147,7 @@
     {:else}
         <div class="text-xl">
             {#if $search}
-                Search for <code class="code text-2xl">{$search}</code> ({formatNumber(data.totalCount)}):
+                Search for <code class="code text-2xl">{$search}</code> {#if onlySandbox}(only sandbox){/if} ({formatNumber(data.totalCount)}):
             {:else}
                 All DIDs ({formatNumber(data.totalCount)}):
             {/if}

@@ -38,16 +38,40 @@ router
   })
   .get("/did", async (ctx) => {
     const out = [];
-    const query = {};
+    const query = { $and: [ {} ] };
     let sort = { time: -1 };
 
     let q = ctx.request.url.searchParams.get("q")?.replace(/^@/, "");
     if (q) {
-      query.$or = [{ did: { $regex: q } }, {
-        "revs.operation.alsoKnownAs": { $regex: q },
-      }];
+      query.$and[0].$or = []
+      const tokens = q.split(' ')
+      let textArr = []
+      for (const t of tokens) {
+        let plcMatch = t.match(/^plc:(https:\/\/|)(.+)$/)
+        let pdsMatch = t.match(/^pds:(https:\/\/|)(.+)$/)
+        let envMatch = t.match(/^env:(.+)$/)
+        if (plcMatch) {
+          query.$and[0].$or.push({ src: 'https://'+plcMatch[2] })
+        } else if (pdsMatch) {
+          query.$and[0].$or.push({ pds: { $in: ['https://'+pdsMatch[2]] }})
+        } else if (envMatch) {
+          const env = ats.defaultPLC.find(p => p.code === envMatch[1])
+          query.$and.push({ src: env.url })
+        } else {
+          textArr.push(t)
+        }
+      }
+      const text = textArr.join(' ').trim()
+      if (text) {
+        query.$and[0].$or.push({ did: { $regex: q } })
+        query.$and[0].$or.push({ "revs.operation.alsoKnownAs": { $regex: q }})
+      }
+      if (query.$and[0].$or.length === 0) {
+        delete query.$and[0].$or
+      }
       //sort = { score: { $meta: "textScore" } }
     }
+
     console.log(query, sort);
     const count = await ats.db.did.count(query);
 
