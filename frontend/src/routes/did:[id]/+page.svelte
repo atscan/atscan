@@ -47,7 +47,7 @@
 <div class="container mx-auto p-8 space-y-8">
     <Breadcrumb data={[
         { label: 'DIDs', link: '/did' },
-        { label: `<span class="mr-2 badge ${item.env ? 'bg-ats-'+item.env : 'bg-gray-500'} text-white dark:text-black">${item.env}</span> federation`, link: `/did?federation=${item.env}` }
+        { label: `<span class="mr-2 badge ${item.env ? 'bg-ats-'+item.env : 'bg-gray-500'} text-white dark:text-black">${item.env}</span> federation`, link: `/did?q=${item.env}` }
     ]} />
     <div class="flex gap-8">
         <div>

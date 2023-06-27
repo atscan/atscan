@@ -1,5 +1,7 @@
-import { Bson, MongoClient } from "https://deno.land/x/mongo@v0.31.2/mod.ts";
+//import { Bson, MongoClient } from "https://deno.land/x/mongo@v0.31.2/mod.ts";
 import { parse, stringify } from "https://deno.land/std@0.184.0/yaml/mod.ts";
+import { MongoClient } from "npm:mongodb"
+import "https://deno.land/std@0.192.0/dotenv/load.ts";
 
 const BSKY_OFFICIAL_PDS = [
   "https://bsky.social",
@@ -12,11 +14,12 @@ export class ATScan {
     this.defaultPLC = parse(Deno.readTextFileSync("./spec/plc.yaml"));
     this.BSKY_OFFICIAL_PDS = BSKY_OFFICIAL_PDS;
   }
-
+  
   async init() {
-    this.client = new MongoClient();
-    await this.client.connect("mongodb://127.0.0.1:27017");
-    this.dbRaw = this.client.database("test");
+    console.log(Deno.env.get('MONGODB_URL'))
+    this.client = new MongoClient(Deno.env.get('MONGODB_URL'));
+    await this.client.connect();
+    this.dbRaw = this.client.db("test");
     this.db = {
       did: this.dbRaw.collection("did"),
       pds: this.dbRaw.collection("pds"),

@@ -17,7 +17,7 @@ async function crawl(ats) {
 }
 
 if (Deno.args[0] === "daemon") {
-  const wait = 60;
+  const wait = 30;
 
   console.log("Initializing ATScan ..");
   const ats = new ATScan();

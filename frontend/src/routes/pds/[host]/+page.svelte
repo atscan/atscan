@@ -1,6 +1,9 @@
 <script>
     import { CodeBlock } from '@skeletonlabs/skeleton';
     import Breadcrumb from '$lib/components/Breadcrumb.svelte';
+    import DIDTable from '$lib/components/DIDTable.svelte';
+    import { formatNumber } from '$lib/utils.js';
+
     export let data;
 
     const item = data.item;
@@ -16,10 +19,8 @@
     </h1>
 
 
-    <h2 class="h2">DIDs</h2>
-    <div>
-        <a href="/did?q=pds:{item.host}" class="underline hover:no-underline">List of all DIDs for {item.host}</a>
-    </div>
+    <h2 class="h2">DIDs <span class="font-normal text-2xl">({formatNumber(data.dids.count)})</span></h2>
+    <DIDTable sourceData={data.dids.items} {data} />
 
     <h2 class="h2">Source</h2>
     <CodeBlock code={JSON.stringify(item, null, 2)} language="json" />

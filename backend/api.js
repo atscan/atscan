@@ -72,12 +72,18 @@ router
       //sort = { score: { $meta: "textScore" } }
     }
 
-    console.log(JSON.stringify(query, null, 2), sort);
+    const maxLimit = 100
+    let limit = Number(ctx.request.url.searchParams.get('limit') || 100)
+    if (limit > maxLimit) {
+      limit = maxLimit
+    }
+
+    console.log(JSON.stringify(query, null, 2), { sort, limit });
     const count = await ats.db.did.count(query);
 
     for (
       const did
-        of (await ats.db.did.find(query).sort(sort).limit(100).toArray())
+        of (await ats.db.did.find(query).sort(sort).limit(limit).toArray())
     ) {
       did.srcHost = did.src.replace(/^https?:\/\//, "");
       out.push(did);

@@ -1,5 +1,5 @@
 <script>
-    import { Table } from '@skeletonlabs/skeleton';
+    import Table from '$lib/components/Table.svelte';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
     import { dateDistance, formatNumber } from '$lib/utils.js';
 
@@ -23,7 +23,7 @@
                     val = dateDistance(val)
                 }
                 if (key === 'didsCount') {
-                    val = `<a href="/did?plc=${row.host}" class="hover:underline">${formatNumber(val)}</a>`
+                    val = `<a href="/did?q=plc:${row.host}" class="hover:underline">${formatNumber(val)}</a>`
                 }
                 return mappedRow[key] = val
 		    })
@@ -47,5 +47,5 @@
 
 <div class="container mx-auto p-8 space-y-8">
 	<h1 class="h1">PLC Directories ({sourceData.length})</h1>
-	<Table source={tableSimple} interactive={true} />
+	<Table source={tableSimple} />
 </div>

@@ -1,5 +1,5 @@
 <script>
-	import { Table } from '@skeletonlabs/skeleton';
+	import Table from '$lib/components/Table.svelte';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import { dateDistance, formatNumber } from '$lib/utils.js';
     import { goto } from '$app/navigation';
@@ -33,7 +33,7 @@
 			keys.forEach((key) => { 
 				let val = row[key]
 				if (key === 'plcs' && val) {
-					val = val.map(i => i.replace(/^https?:\/\//, '')).join(', ')
+					val = val.map(i => i.replace(/^https?:\/\//, '')).map(p => `<a href="/did?q=plc:${p}" class="hover:underline">${p}</a>`).join(', ')
 				}
 				if (key === 'env') {
 					let arr = []
@@ -69,7 +69,7 @@
 					val += `<br /><span class="text-xs">${row.ip?.org || 'n/a'}</span>`
 				}
 				if (key === 'didsCount') {
-					val = `<a href="/did?pds=${row.host}" class="hover:underline">${formatNumber(val)}</a>`
+					val = `<a href="/did?q=pds:${row.host}" class="hover:underline">${formatNumber(val)}</a>`
 				}
 				if (key === 'lastOnline' && row.inspect) {
 					val = row.inspect?.lastOnline ? dateDistance(row.inspect?.lastOnline) : '-'
@@ -131,5 +131,5 @@
 		<input class="input" title="Input (text)" type="text" placeholder="Search for PDS .." bind:value={$search} />
 		<!--button type="submit" class="btn variant-filled">Search</button-->
 	</form>
-	<Table source={tableSimple} interactive={true} on:selected={selectionHandler} />
+	<Table source={tableSimple} />
 </div>

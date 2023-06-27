@@ -12,6 +12,8 @@
 	import hljs from 'highlight.js';
 	import 'highlight.js/styles/github-dark.css';
     import { storeHighlightJs } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
+	import { connect, StringCodec } from 'nats.ws';
 
 	export let data;
 
@@ -21,6 +23,18 @@
 		//console.log('scrolltop');
     	//window.scrollTo(0, 0);
   	});
+
+	onMount(async () => {
+		const nc = await connect({ servers: "wss://nats.gwei.cz" });
+		const sc = StringCodec();
+		const sub = nc.subscribe("greet.sue");
+		(async () => {
+			for await (const m of sub) {
+				console.log(`[${sub.getProcessed()}]: ${sc.decode(m.data)}`);
+			}
+			console.log("subscription closed");
+		})();
+	})
 </script>
 
 <svelte:head>
