@@ -8,7 +8,7 @@
     import { browser } from '$app/environment';
     
     export let data;
-	const search = writable(data.q || '')
+	const search = writable(data.q?.trim() || '')
     $: sourceData = data.did;
     let onlySandbox = data.onlySandbox || null
     let initialSetupOnlySandbox = null
@@ -37,6 +37,10 @@
 
     let lastWrite = null
 	search.subscribe((val) => {
+        if (val?.trim() === data.q) {
+            return val
+        }
+
         sourceData = null
         const current = new Date()
         lastWrite = current
@@ -146,8 +150,8 @@
         </div>
     {:else}
         <div class="text-xl">
-            {#if $search}
-                Search for <code class="code text-2xl">{$search}</code> {#if onlySandbox}(only sandbox){/if} ({formatNumber(data.totalCount)}):
+            {#if $search && $search?.trim() !== ""}
+                Search for <code class="code text-2xl">{$search.trim()}</code> {#if onlySandbox}(only sandbox){/if} ({formatNumber(data.totalCount)}):
             {:else}
                 All DIDs ({formatNumber(data.totalCount)}):
             {/if}
