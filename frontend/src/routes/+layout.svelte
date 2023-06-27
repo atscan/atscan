@@ -50,10 +50,10 @@
 				<a href="/"><strong class="text-xl ml-4 font-bold text-gray-600 dark:text-gray-300"><span class="text-[#3d81f8]">AT</span>Scan</strong></a>
 				<div class="lg:ml-8 flex gap-1">
 					<div class="relative hidden lg:block">
-						<a href="/did" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/did'}><span>DIDs</span></a>
+						<a href="/did" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname.startsWith('/did')}><span>DIDs</span></a>
 					</div>
 					<div class="relative hidden lg:block">
-						<a href="/pds" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/pds'}><span>PDS Instances</span></a>
+						<a href="/pds" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname.startsWith('/pds')}><span>PDS Instances</span></a>
 					</div>
 					<div class="relative hidden lg:block">
 						<a href="/plc" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/plc'}><span>PLC Directories</span></a>

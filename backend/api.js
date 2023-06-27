@@ -9,7 +9,7 @@ const HTTP_PORT = 6677;
 const app = new Application();
 
 function perf(ctx) {
-  console.log(`GET ${ctx.request.url} [${performance.now()-ctx.perf}ms]`);
+  console.log(`GET ${ctx.request.url} [${performance.now() - ctx.perf}ms]`);
 }
 
 const router = new Router();
@@ -45,44 +45,46 @@ router
   })
   .get("/did", async (ctx) => {
     const out = [];
-    const query = { $and: [ {} ] };
+    const query = { $and: [{}] };
     let sort = { time: -1 };
 
     let q = ctx.request.url.searchParams.get("q")?.replace(/^@/, "");
     if (q) {
-      query.$and[0].$or = []
-      const tokens = q.split(' ')
-      let textArr = []
+      query.$and[0].$or = [];
+      const tokens = q.split(" ");
+      let textArr = [];
       for (const t of tokens) {
-        let plcMatch = t.match(/^plc:(https:\/\/|)(.+)$/)
-        let pdsMatch = t.match(/^pds:(https:\/\/|)(.+)$/)
-        let envMatch = t.match(/^env:(.+)$/)
+        let plcMatch = t.match(/^plc:(https:\/\/|)(.+)$/);
+        let pdsMatch = t.match(/^pds:(https:\/\/|)(.+)$/);
+        let envMatch = t.match(/^env:(.+)$/);
         if (plcMatch) {
-          query.$and.push({ src: 'https://'+plcMatch[2] })
+          query.$and.push({ src: "https://" + plcMatch[2] });
         } else if (pdsMatch) {
-          query.$and.push({ pds: { $in: ['https://'+pdsMatch[2]] }})
+          query.$and.push({ pds: { $in: ["https://" + pdsMatch[2]] } });
         } else if (envMatch) {
-          const env = ats.defaultPLC.find(p => p.code === envMatch[1])
-          query.$and.push({ src: env.url })
+          const env = ats.defaultPLC.find((p) => p.code === envMatch[1]);
+          query.$and.push({ src: env.url });
         } else {
-          textArr.push(t)
+          textArr.push(t);
         }
       }
-      const text = textArr.join(' ').trim()
+      const text = textArr.join(" ").trim();
       if (text) {
-        query.$and[0].$or.push({ did: { $regex: text} })
-        query.$and[0].$or.push({ "revs.operation.alsoKnownAs": { $regex: text }})
+        query.$and[0].$or.push({ did: { $regex: text } });
+        query.$and[0].$or.push({
+          "revs.operation.alsoKnownAs": { $regex: text },
+        });
       }
       if (query.$and[0].$or.length === 0) {
-        delete query.$and[0].$or
+        delete query.$and[0].$or;
       }
       //sort = { score: { $meta: "textScore" } }
     }
 
-    const maxLimit = 100
-    let limit = Number(ctx.request.url.searchParams.get('limit') || 100)
+    const maxLimit = 100;
+    let limit = Number(ctx.request.url.searchParams.get("limit") || 100);
     if (limit > maxLimit) {
-      limit = maxLimit
+      limit = maxLimit;
     }
 
     //console.log(JSON.stringify(query, null, 2), { sort, limit });
@@ -134,9 +136,9 @@ router
 
 app.use(oakCors()); // Enable CORS for All Routes
 app.use(async (ctx, next) => {
-  ctx.perf = performance.now()
-  await next()
-})
+  ctx.perf = performance.now();
+  await next();
+});
 app.use(router.routes());
 
 app.listen({ port: HTTP_PORT });

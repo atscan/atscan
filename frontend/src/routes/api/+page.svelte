@@ -26,7 +26,7 @@
                     if (typeof(val) === 'string') {
                         val = [val]
                     }
-                    val = val.map(v => `<code class="code">${v}</code>`).join('<br />')
+                    val = val.map(v => `<code class="code ${key==='path' ? 'text-lg' : ''}">${v}</code>`).join('<br />')
                 }
                 return val
             }),

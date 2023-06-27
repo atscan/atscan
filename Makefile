@@ -20,6 +20,9 @@ index-daemon:
 api-ws:
 	deno run --unstable --allow-net --allow-read --allow-env --allow-sys ./backend/api-ws.js
 
+did-crawler:
+	deno run --unstable --allow-net --allow-read --allow-env --allow-sys ./backend/did-crawler.js
+
 test:
 	deno test --unstable --allow-read ./backend/test.js
 
