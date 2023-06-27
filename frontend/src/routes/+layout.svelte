@@ -13,9 +13,6 @@
 	import 'highlight.js/styles/github-dark.css';
     import { storeHighlightJs } from '@skeletonlabs/skeleton';
 
-  	import Fa from 'svelte-fa'
-    import { faGithub } from '@fortawesome/free-brands-svg-icons'
-
 	export let data;
 
 	storeHighlightJs.set(hljs);
@@ -37,7 +34,7 @@
 		<AppBar>
 			<svelte:fragment slot="lead">
 				<a href="/"><strong class="text-xl ml-4 font-bold text-gray-600 dark:text-gray-300"><span class="text-[#3d81f8]">AT</span>Scan</strong></a>
-				<div class="lg:ml-8 flex">
+				<div class="lg:ml-8 flex gap-1">
 					<div class="relative hidden lg:block">
 						<a href="/did" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/did'}><span>DIDs</span></a>
 					</div>

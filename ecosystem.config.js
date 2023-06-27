@@ -12,6 +12,12 @@ module.exports = {
     interpreter: "mullvad-exclude",
     interpreterArgs: "deno run --unstable --allow-net --allow-read",
   }, {
+    name: "atscan-indexer",
+    script: "./backend/indexer.js",
+    args: "daemon",
+    interpreter: "deno",
+    interpreterArgs: "run --unstable --allow-net --allow-read",
+  }, {
     name: "atscan-fe-dev",
     interpreter: "mullvad-exclude",
     interpreterArgs: "npm run dev",
