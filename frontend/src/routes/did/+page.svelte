@@ -108,9 +108,9 @@
     {:else}
         <div class="text-xl">
             {#if $search && $search?.trim() !== ""}
-                Search for <code class="code text-2xl">{$search.trim()}</code> {#if onlySandbox}(only sandbox){/if} ({formatNumber(data.totalCount)}):
+                Search for <code class="code text-2xl variant-tertiary">{$search.trim()}</code> {#if onlySandbox}(only sandbox){/if} ({formatNumber(data.totalCount)}):
             {:else}
-                All DIDs ({formatNumber(data.totalCount)}):
+                All DIDs {#if onlySandbox} on sandbox{/if} ({formatNumber(data.totalCount)}):
             {/if}
         </div>
 	    <DIDTable {sourceData} {data} />

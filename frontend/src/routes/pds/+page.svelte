@@ -34,6 +34,9 @@
 				let val = row[key]
 				if (key === 'plcs' && val) {
 					val = val.map(i => i.replace(/^https?:\/\//, '')).map(p => `<a href="/did?q=plc:${p}" class="hover:underline">${p}</a>`).join(', ')
+					if (row.inspect?.current.data?.availableUserDomains) {
+						val += '<br/>(' + row.inspect?.current.data?.availableUserDomains.join(', ') + ')'
+					}
 				}
 				if (key === 'env') {
 					let arr = []
@@ -50,9 +53,6 @@
 					val = row.inspect?.current.err
 						? `<a href="${row.url}/xrpc/com.atproto.server.describeServer" target="_blank" title="${row.inspect.current.err}" class="hover:underline">error</a>`
 						: row.inspect?.current.ms ? `<a href="${row.url}/xrpc/com.atproto.server.describeServer" target="_blank" class="hover:underline">${row.inspect.current.ms + 'ms'}</a>` : '-'
-				}
-				if (key === 'userDomains') {
-					val = row.inspect?.current.data?.availableUserDomains.join(', ')
 				}
 				if (key === 'location') {
 					val = row.ip && row.ip.country
@@ -72,7 +72,7 @@
 					val = `<a href="/did?q=pds:${row.host}" class="hover:underline">${formatNumber(val)}</a>`
 				}
 				if (key === 'lastOnline' && row.inspect) {
-					val = row.inspect?.lastOnline ? dateDistance(row.inspect?.lastOnline) : '-'
+					val = `<span class="text-xs">${row.inspect?.lastOnline ? dateDistance(row.inspect?.lastOnline) + ' ago' : '-'}</span>`
 				}
 
 				return mappedRow[key] = val
@@ -81,10 +81,34 @@
 		}))
 	}
 
-	const baseData = data.pds.filter(d => d.inspect?.lastOnline)
+	const baseData = data.pds //.filter(d => d.inspect?.lastOnline)
 
-	$: sourceData = JSON.parse(JSON.stringify(baseData)).filter(d => d.inspect?.lastOnline)
-		.filter(i => i.url.match(new RegExp($search, 'i')))
+	$: sourceData = (function filterSourceData (bd) {
+		const tokens = $search.split(' ')
+		let base = JSON.parse(JSON.stringify(bd)) //.filter(d => d.inspect?.lastOnline)
+		let str = []
+		for (const t of tokens) {
+			const cmatch = t.match(/^country:([\w]{2})$/)
+			if (cmatch) {
+				console.log(cmatch[1])
+				base = base.filter(b => {
+					if (!b.ip) {
+						return false
+					}
+					return b.ip.country.toLowerCase() === cmatch[1].toLowerCase()
+				})
+			} else {
+				str.push(t)
+			}
+		}
+		const txt = str.join(' ').trim()
+		if (txt) {
+			base = base.filter(i => i.url.match(new RegExp(txt, 'i')))
+		}
+		console.log(base.length)
+		return base
+
+	})(baseData)
 
 	let sourceDataOffline = data.pds.filter(d => !d.inspect?.lastOnline)
 
@@ -97,14 +121,12 @@
 		return false
 	}
 
-
-
 	$: tableSimple = {
 		// A list of heading labels.
-		head: ['Federation', 'Host', 'Delay', 'Location', 'DIDs', 'PLCs', 'User Domains', 'Last mod'],
+		head: ['Federation', 'Host', 'DIDs', 'Location', 'PLCs (User Domains)', 'Resp. time', 'Last Online'],
 		// The data visibly shown in your table body UI.
 		//body: mapper(sourceData, ['host', 'type', 'plc']),
-		body: tableMapperValuesLocal(sourceData, ['env', 'host', 'ms', 'location', 'didsCount', 'plcs', 'userDomains', 'lastOnline' ]),
+		body: tableMapperValuesLocal(sourceData, ['env', 'host', 'didsCount', 'location', 'plcs', 'ms', 'lastOnline' ]),
 		// Optional: The data returned when interactive is enabled and a row is clicked.
 		meta: tableMapperValues(sourceData, ['host']),
 		// Optional: A list of footer labels.
@@ -114,7 +136,7 @@
 
 	const tableSimpleOffline = {
 		// A list of heading labels.
-		head: ['Federation', 'Host', 'Delay', 'Location', 'DIDs', 'PLCs',],
+		head: ['Federation', 'Host', 'DIDs', 'Location', 'Delay', 'PLCs' ],
 		body: tableMapperValuesLocal(sourceDataOffline, ['env', 'host', 'ms', 'location', 'didsCount', 'plcs']),
 		meta: tableMapperValues(sourceDataOffline, ['host']),
 	};

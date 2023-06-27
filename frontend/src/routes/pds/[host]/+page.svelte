@@ -48,7 +48,7 @@
     </h1>
     <div class="lg:grid grid-cols-2 gap-4">
         {#each infoMaps as map}
-            <div class="card p-4 lg:mb-0 mb-2">
+            <div class="card bg-white/20 p-4 lg:mb-0 mb-2">
                 {#if map.title}
                     <h3 class="h4 uppercase mb-2">{@html map.title}</h3>
                 {/if}

@@ -13,7 +13,7 @@
 	import 'highlight.js/styles/github-dark.css';
     import { storeHighlightJs } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { connect, StringCodec } from 'nats.ws';
+	import { connect, StringCodec, JSONCodec } from 'nats.ws';
 
 	export let data;
 
@@ -26,11 +26,11 @@
 
 	onMount(async () => {
 		const nc = await connect({ servers: "wss://nats.gwei.cz" });
-		const sc = StringCodec();
+		const codec = JSONCodec();
 		const sub = nc.subscribe("greet.sue");
 		(async () => {
 			for await (const m of sub) {
-				console.log(`[${sub.getProcessed()}]: ${sc.decode(m.data)}`);
+				console.log(`[${sub.getProcessed()}]: ${JSON.stringify(codec.decode(m.data))}`);
 			}
 			console.log("subscription closed");
 		})();
@@ -50,16 +50,16 @@
 				<a href="/"><strong class="text-xl ml-4 font-bold text-gray-600 dark:text-gray-300"><span class="text-[#3d81f8]">AT</span>Scan</strong></a>
 				<div class="lg:ml-8 flex gap-1">
 					<div class="relative hidden lg:block">
-						<a href="/did" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname.startsWith('/did')}><span>DIDs</span></a>
+						<a href="/did" class="btn hover:variant-soft-tertiary" class:bg-tertiary-active-token={$page.url.pathname.startsWith('/did')}><span>DIDs</span></a>
 					</div>
 					<div class="relative hidden lg:block">
-						<a href="/pds" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname.startsWith('/pds')}><span>PDS Instances</span></a>
+						<a href="/pds" class="btn hover:variant-soft-tertiary" class:bg-tertiary-active-token={$page.url.pathname.startsWith('/pds')}><span>PDS Instances</span></a>
 					</div>
 					<div class="relative hidden lg:block">
-						<a href="/plc" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/plc'}><span>PLC Directories</span></a>
+						<a href="/plc" class="btn hover:variant-soft-tertiary" class:bg-tertiary-active-token={$page.url.pathname === '/plc'}><span>PLC Directories</span></a>
 					</div>
 					<div class="relative hidden lg:block">
-						<a href="/api" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/api'}><span>API</span></a>
+						<a href="/api" class="btn hover:variant-soft-tertiary" class:bg-tertiary-active-token={$page.url.pathname === '/api'}><span>API</span></a>
 					</div>
 				</div>
 			</svelte:fragment>

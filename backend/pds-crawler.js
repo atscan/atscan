@@ -2,6 +2,8 @@ import { ATScan } from "./lib/atscan.js";
 import { pooledMap } from "https://deno.land/std/async/mod.ts";
 import "https://deno.land/std@0.192.0/dotenv/load.ts";
 
+const wait = 60 * 5;
+
 function timeout(ms, promise) {
   return new Promise(function (resolve, reject) {
     const start = performance.now();
@@ -101,8 +103,6 @@ async function crawl(ats) {
 }
 
 if (Deno.args[0] === "daemon") {
-  const wait = 60 * 10;
-
   console.log("Initializing ATScan ..");
   //console.log('IPINFO_TOKEN', Deno.env.get("IPINFO_TOKEN"));
   const ats = new ATScan();
