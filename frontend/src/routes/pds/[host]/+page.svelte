@@ -1,13 +1,17 @@
 <script>
-    import { CodeBlock } from '@skeletonlabs/skeleton';
     import Breadcrumb from '$lib/components/Breadcrumb.svelte';
     import DIDTable from '$lib/components/DIDTable.svelte';
     import { formatNumber } from '$lib/utils.js';
-
+    import SourceSection from '$lib/components/SourceSection.svelte';
+    
     export let data;
 
     const item = data.item;
 </script>
+
+<svelte:head>
+	<title>{item.host} [PDS] | ATScan</title>
+</svelte:head>
 
 <div class="container mx-auto p-8 space-y-8">
     <Breadcrumb data={[
@@ -19,11 +23,11 @@
     </h1>
 
 
-    <h2 class="h2">DIDs <span class="font-normal text-2xl">({formatNumber(data.dids.count)})</span></h2>
+    <h2 class="h2"><a href="/did?q=pds:{item.host}">DIDs</a> <span class="font-normal text-2xl">({formatNumber(data.dids.count)})</span></h2>
     <DIDTable sourceData={data.dids.items} {data} />
+    {#if data.dids.count > data.dids.items.length}
+        <div><a href="/did?q=pds:{item.host}"><button class="btn variant-filled">Show all {formatNumber(data.dids.count)} DIDs hosted by {item.host}</button></a></div>
+    {/if}
 
-    <h2 class="h2">Source</h2>
-    <CodeBlock code={JSON.stringify(item, null, 2)} language="json" />
-
-	<!--p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p-->
+    <SourceSection {data} model="pds" />
 </div>

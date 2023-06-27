@@ -1,9 +1,9 @@
 <script>
-    import { CodeBlock } from '@skeletonlabs/skeleton';
-    import Breadcrumb from '$lib/components/Breadcrumb.svelte';
     import { dateDistance, identicon } from '$lib/utils.js';
     import { Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
+    import SourceSection from '$lib/components/SourceSection.svelte';
+    import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 
     export let data;
 
@@ -66,8 +66,5 @@
     <h2 class="h2">Revisions <span class="font-normal text-2xl">({sourceData.length})</span></h2>
     <Table source={historyTable} />
 
-    <h2 class="h2">Source</h2>
-    <CodeBlock code={JSON.stringify(item, null, 2)} language="json" />
-
-	<!--p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p-->
+    <SourceSection {data} model="did" />
 </div>
