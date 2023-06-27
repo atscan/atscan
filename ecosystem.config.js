@@ -4,19 +4,19 @@ module.exports = {
     script: "./backend/plc-crawler.js",
     args: "daemon",
     interpreter: "deno",
-    interpreterArgs: "run --unstable --allow-net --allow-read",
+    interpreterArgs: "run --unstable --allow-net --allow-read --allow-env",
   }, {
     name: "atscan-pds-crawler",
     script: "./backend/pds-crawler.js",
     args: "daemon",
     interpreter: "mullvad-exclude",
-    interpreterArgs: "deno run --unstable --allow-net --allow-read",
+    interpreterArgs: "deno run --unstable --allow-net --allow-read --allow-env",
   }, {
     name: "atscan-indexer",
     script: "./backend/indexer.js",
     args: "daemon",
     interpreter: "deno",
-    interpreterArgs: "run --unstable --allow-net --allow-read",
+    interpreterArgs: "run --unstable --allow-net --allow-read --allow-env",
   }, {
     name: "atscan-fe-dev",
     interpreter: "mullvad-exclude",

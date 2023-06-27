@@ -2,13 +2,16 @@
     import { Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues, ProgressBar, ProgressRadial } from '@skeletonlabs/skeleton';
     import { dateDistance, identicon, formatNumber } from '$lib/utils.js';
-    import { goto } from '$app/navigation';
+    import { goto, beforeNavigate, afterNavigate, invalidate } from '$app/navigation';
     import { writable } from 'svelte/store';
     import { page } from '$app/stores';
     
     export let data;
 	const search = writable($page.url.searchParams.get('q') || '')
     $: sourceData = data.did;
+
+    afterNavigate(() => {
+  	});
 
     function gotoNewTableState () {
 		const path = '/did' + ($search !== '' ? `?q=${$search}` : '')
@@ -28,7 +31,7 @@
             if (lastWrite === current) {
                 gotoNewTableState()
             }
-        }, 350)
+        }, !$search ? 0 : 350)
 		return val
 	})
 
