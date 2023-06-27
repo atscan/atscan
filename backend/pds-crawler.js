@@ -104,6 +104,7 @@ if (Deno.args[0] === "daemon") {
   const wait = 60 * 10;
 
   console.log("Initializing ATScan ..");
+  //console.log('IPINFO_TOKEN', Deno.env.get("IPINFO_TOKEN"));
   const ats = new ATScan();
   ats.debug = true;
   await ats.init();

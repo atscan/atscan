@@ -1,7 +1,6 @@
 <script>
     import { CodeBlock, clipboard } from '@skeletonlabs/skeleton';
-    import { goto } from '$app/navigation';
-
+    
     export let model = 'pds';
     export let data;
 
@@ -17,7 +16,7 @@
 <CodeBlock code={JSON.stringify(data.item, null, 2)} language="json" />
 
 <div> 
-    <p>You can get this data as JSON by making a simple HTTP GET request to our API:</p>
+    <p>You can get this data as JSON by making a simple HTTP GET request to our API endpoint:</p>
     <div class="mt-4 mb-8 flex gap-4 w-full">
         <div data-clipboard="exampleElement" class="textarea p-2">{url}</div>
         <button use:clipboard={{ element: 'exampleElement' }} class="btn variant-filled"><i class="fa-regular fa-clipboard mr-2"></i> Copy</button>

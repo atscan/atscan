@@ -58,6 +58,9 @@
 					<div class="relative hidden lg:block">
 						<a href="/plc" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/plc'}><span>PLC Directories</span></a>
 					</div>
+					<div class="relative hidden lg:block">
+						<a href="/api" class="btn hover:variant-soft-primary" class:bg-primary-active-token={$page.url.pathname === '/api'}><span>API</span></a>
+					</div>
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
@@ -102,5 +105,7 @@
 	</svelte:fragment>
 	<!-- Page Route Content -->
 	<slot />
+	<!--svelte:fragment slot="footer">
+	</svelte:fragment-->
 </AppShell>
 
