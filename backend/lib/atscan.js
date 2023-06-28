@@ -34,6 +34,10 @@ export class ATScan {
     }
     const req = await fetch(url);
     const lines = await req.text();
+    if (!lines) {
+      console.error(`No output from PLC! [${url}]`);
+      return null;
+    }
     const arr = lines.split("\n").map((l) => JSON.parse(l));
 
     for (const data of arr) {
