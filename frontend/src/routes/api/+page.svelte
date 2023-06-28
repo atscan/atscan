@@ -4,7 +4,7 @@
 	import Table from '$lib/components/Table.svelte';
 	import { customTableMapper } from '$lib/utils.js';
 
-	export let data;
+	//export let data;
 
 	const sourceData = [
 		{
