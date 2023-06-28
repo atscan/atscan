@@ -13,7 +13,7 @@ async function index(ats) {
     await ats.db.pds.updateOne({ url: pds.url }, { $set: { didsCount } });
   }
 
-  console.log(await whoiser("dev.otaso-sky.blue"));
+  //console.log(await whoiser("dev.otaso-sky.blue"));
 }
 
 if (Deno.args[0] === "daemon") {
