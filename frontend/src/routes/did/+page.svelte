@@ -1,11 +1,11 @@
 <script>
-    import DIDTable from '$lib/components/DIDTable.svelte';
 	import { ProgressRadial, SlideToggle } from '@skeletonlabs/skeleton';
     import { formatNumber } from '$lib/utils.js';
     import { goto, invalidate } from '$app/navigation';
     import { writable } from 'svelte/store';
     import { page } from '$app/stores';
     import { onMount, onDestroy } from 'svelte';
+    import DIDTable from '$lib/components/DIDTable.svelte';
     
     export let data;
 	const search = writable(data.q?.trim() || '')

@@ -9,7 +9,7 @@ const HTTP_PORT = 6677;
 const app = new Application();
 
 function perf(ctx) {
-  console.log(`GET ${ctx.request.url} [${performance.now() - ctx.perf}ms]`);
+  console.log(`GET ${ctx.request.url} [${performance.now() - ctx.perf}ms] ${ctx.request.headers.get('user-agent')}`);
 }
 
 const router = new Router();
@@ -119,8 +119,17 @@ router
     perf(ctx);
   })
   .get("/pds/:host", async (ctx) => {
-    const host = ctx.params.host;
-    const item = await ats.db.pds.findOne({ url: `https://${host}` });
+    let host = ctx.params.host;
+    let https = true
+    if (host.startsWith('localhost:')) {
+      https = false
+    }
+    const q = { url: `http${https ? 's' : ''}://${host}` }
+    console.log(host, q)
+    const item = await ats.db.pds.findOne(q);
+    if (!item) {
+      return ctx.response.code = 404
+    }
     item.host = item.url.replace(/^https?:\/\//, "");
     item.env = (ats.BSKY_OFFICIAL_PDS.includes(item.url) &&
         item.plcs.includes("https://plc.directory"))
