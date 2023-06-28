@@ -1,7 +1,4 @@
 import pkg from '../../package.json';
-import * as _ from 'lodash';
-
-import { env } from '$env/dynamic/private';
 
 export async function load({ fetch }) {
 	const config = {
@@ -17,12 +14,9 @@ export async function load({ fetch }) {
 	const ecosystemRes = await fetch(config.ecosystem);
 	const ecosystem = ecosystemRes ? await ecosystemRes.json() : null;
 
-	const res = await fetch(`${config.api}/plc`);
-	const plc = _.orderBy(await res.json(), ['code'], ['asc']);
 	return {
 		config,
 		ecosystem,
-		pkg,
-		plc
+		pkg
 	};
 }
