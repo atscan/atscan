@@ -1,3 +1,0 @@
-[submodule "ecosystem"]
-	path = ecosystem
-	url = git@github.com:atscan/atproto-ecosystem.git
