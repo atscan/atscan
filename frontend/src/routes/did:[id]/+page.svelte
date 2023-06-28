@@ -4,6 +4,7 @@
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
     import SourceSection from '$lib/components/SourceSection.svelte';
     import Breadcrumb from '$lib/components/Breadcrumb.svelte';
+    import PDSTable from '$lib/components/PDSTable.svelte';
 
     export let data;
 
@@ -65,6 +66,11 @@
 
     <h2 class="h2">Revisions <span class="font-normal text-2xl">({sourceData.length})</span></h2>
     <Table source={historyTable} />
+
+    {#if data.pds}
+        <h2 class="h2">PDS</h2>
+        <PDSTable sourceData={data.pds} {data} />
+    {/if}
 
     <SourceSection {data} model="did" />
 </div>
