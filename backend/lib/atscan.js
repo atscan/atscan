@@ -6,6 +6,7 @@ import "https://deno.land/std@0.192.0/dotenv/load.ts";
 const BSKY_OFFICIAL_PDS = [
   "https://bsky.social",
 ];
+const ATSCAN_ECOSYSTEM = "https://ecosystem.atscan.net/index.json";
 
 export class ATScan {
   constructor(opts = {}) {
@@ -16,9 +17,10 @@ export class ATScan {
   }
 
   async init() {
-    console.log(Deno.env.get("MONGODB_URL"));
+    await this.ecosystemLoad();
     this.client = new MongoClient(Deno.env.get("MONGODB_URL"));
     await this.client.connect();
+    console.log(`Connected to MongoDB: ${Deno.env.get("MONGODB_URL")}`);
     this.dbRaw = this.client.db("test");
     this.db = {
       did: this.dbRaw.collection("did"),
@@ -122,5 +124,15 @@ export class ATScan {
       $set: { key, value: arr[arr.length - 1].createdAt },
     }, { upsert: true });
     return arr.length !== 1 ? arr[arr.length - 1].createdAt : false;
+  }
+
+  async ecosystemLoad() {
+    const res = await fetch(ATSCAN_ECOSYSTEM);
+    this.ecosystem = await res.json();
+    console.log(`Ecosystem updated: ${ATSCAN_ECOSYSTEM}`);
+  }
+  startDaemon() {
+    console.log("Starting daemon ..");
+    const ecosInt = setInterval(() => this.ecosystemLoad(), 30 * 1000);
   }
 }

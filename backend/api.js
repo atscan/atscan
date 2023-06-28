@@ -4,6 +4,7 @@ import { oakCors } from "https://deno.land/x/cors/mod.ts";
 
 const ats = new ATScan();
 await ats.init();
+ats.startDaemon();
 
 const HTTP_PORT = 6677;
 const app = new Application();
@@ -106,6 +107,32 @@ router
     ctx.response.body = ctx.request.headers.get("x-ats-wrapped") === "true"
       ? { count, items: out }
       : out;
+    perf(ctx);
+  })
+  .get("/feds", (ctx) => {
+    ctx.response.body = ats.ecosystem.data.federations;
+    perf(ctx);
+  })
+  .get("/fed/:id", (ctx) => {
+    const item = ats.ecosystem.data.federations.find((f) =>
+      f.id === ctx.params.id
+    );
+    if (!item) {
+      return ctx.response.code = 404;
+    }
+    ctx.response.body = item;
+    perf(ctx);
+  })
+  .get("/clients", (ctx) => {
+    ctx.response.body = ats.ecosystem.data.clients;
+    perf(ctx);
+  })
+  .get("/client/:id", (ctx) => {
+    const item = ats.ecosystem.data.clients.find((f) => f.id === ctx.params.id);
+    if (!item) {
+      return ctx.response.code = 404;
+    }
+    ctx.response.body = item;
     perf(ctx);
   })
   .get("/:id", async (ctx) => {
