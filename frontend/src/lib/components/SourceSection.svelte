@@ -5,8 +5,8 @@
 	export let data;
 
 	const models = {
-		pds: { url: 'https://api.atscan.net/pds/%', key: 'host' },
-		did: { url: 'https://api.atscan.net/%', key: 'did' }
+		pds: { url: `${data.config.api}/pds/%`, key: 'host' },
+		did: { url: `${data.config.api}/%`, key: 'did' }
 	};
 	const config = models[model];
 	const url = config.url.replace('%', data.item[config.key]);

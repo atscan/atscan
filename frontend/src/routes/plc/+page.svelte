@@ -1,6 +1,6 @@
 <script>
 	import Table from '$lib/components/Table.svelte';
-	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
+	import { dataTableHandler, tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import { dateDistance, formatNumber } from '$lib/utils.js';
 
 	export let data;
@@ -43,7 +43,7 @@
 </script>
 
 <svelte:head>
-	<title>PLC Directories | ATScan</title>
+	<title>PLC Directories | {data.config.name}</title>
 </svelte:head>
 
 <div class="container mx-auto p-8 space-y-8">

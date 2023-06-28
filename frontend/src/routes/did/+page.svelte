@@ -74,7 +74,7 @@
 </script>
 
 <svelte:head>
-	<title>DIDs | ATScan</title>
+	<title>DIDs | {data.config.name}</title>
 </svelte:head>
 
 <div class="container mx-auto p-8 space-y-8">

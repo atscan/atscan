@@ -81,7 +81,7 @@
 </script>
 
 <svelte:head>
-	<title>{item.host} [PDS] | ATScan</title>
+	<title>{item.host} [PDS] | {data.config.name}</title>
 </svelte:head>
 
 <div class="container mx-auto p-8 space-y-8">

@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
 
 /** @type {import('./$types').PageLoad} */
-export async function load({ fetch, params }) {
-	const res = await fetch('https://api.atscan.net/pds');
+export async function load({ fetch, parent }) {
+	const { config } = await parent();
+	const res = await fetch(`${config.api}/pds`);
 	const arr = (await res.json()).map((i) => {
 		i.err = Boolean(i.inspect?.current?.err);
 		return i;

@@ -48,7 +48,7 @@
 </script>
 
 <svelte:head>
-	<title>{item.did} | ATScan</title>
+	<title>{item.did} | {data.config.name}</title>
 </svelte:head>
 
 <div class="container mx-auto p-8 space-y-8">

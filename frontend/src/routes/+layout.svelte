@@ -38,7 +38,8 @@
 </script>
 
 <svelte:head>
-	<title>ATScan</title>
+	<title>{data.config.name}</title>
+	<script defer data-domain={data.config.domain} src="https://x.gwei.cz/js/script.js"></script>
 </svelte:head>
 
 <!-- App Shell -->
@@ -116,7 +117,7 @@
 				</a>
 				<a
 					class="btn btn-sm variant-ghost-surface hover:variant-soft-primary icon"
-					href="https://github.com/atscan/atscan"
+					href={data.config.git}
 					target="_blank"
 					rel="noreferrer"
 				>

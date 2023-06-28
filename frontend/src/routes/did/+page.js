@@ -1,9 +1,10 @@
 import * as _ from 'lodash';
 
 /** @type {import('./$types').PageLoad} */
-export async function load({ params, fetch, url }) {
+export async function load({ fetch, url, parent }) {
+	const { config } = await parent();
 	let q = url.searchParams.get('q');
-	const res = await fetch('https://api.atscan.net/did' + (q ? `?q=${q}` : ''), {
+	const res = await fetch(`${config.api}/did` + (q ? `?q=${q}` : ''), {
 		headers: { 'x-ats-wrapped': 'true' }
 	});
 	const json = await res.json();

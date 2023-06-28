@@ -1,10 +1,10 @@
 <script>
-	import { CodeBlock, clipboard } from '@skeletonlabs/skeleton';
+	import { CodeBlock, clipboard, dataTableHandler } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import Table from '$lib/components/Table.svelte';
 	import { customTableMapper } from '$lib/utils.js';
 
-	//export let data;
+	export let data;
 
 	const sourceData = [
 		{
@@ -44,11 +44,11 @@
 </script>
 
 <svelte:head>
-	<title>API | ATScan</title>
+	<title>{data.config.name} API</title>
 </svelte:head>
 
 <div class="container mx-auto p-8 space-y-8">
-	<h1 class="h1">API</h1>
+	<h1 class="h1">{data.config.name} API</h1>
 
 	<aside class="alert variant-filled-warning">
 		<!-- Icon -->
@@ -62,19 +62,19 @@
 
 	<p>
 		Our API is available at this address:<br /><span class="mt-2 pre text-sm inline-block"
-			>https://api.atscan.net</span
+			>{data.config.api}</span
 		>
 	</p>
 
 	<h3 class="h3">Mirrored paths (web & api)</h3>
 	<p>
 		Most endpoints mirror the web interface path, so for example the <a
-			href="https://atscan.net/did?q=pds:test-pds.gwei.cz"
-			class="code">https://atscan.net/did?q=pds:test-pds.gwei.cz</a
+			href="{data.config.api}/did?q=pds:test-pds.gwei.cz"
+			class="code">{data.config.api}/did?q=pds:test-pds.gwei.cz</a
 		>
 		page will list all DIDs on this PDS and the
-		<a href="https://api.atscan.net/did?q=pds:test-pds.gwei.cz" class="code"
-			>https://api.atscan.net/did?q=pds:test-pds.gwei.cz</a
+		<a href="{data.config.api}/did?q=pds:test-pds.gwei.cz" class="code"
+			>{data.config.api}/did?q=pds:test-pds.gwei.cz</a
 		> page will return the same as JSON.
 	</p>
 
@@ -82,7 +82,7 @@
 
 	<Table source={tableSimple} />
 
-	<!--CodeBlock code={`http -F api.atscan.net/did
+	<!--CodeBlock code={`http -F {data.config.api}/did
 > HTTP/1.1 200 OK
 Access-Control-Allow-Origin: *
 Alt-Svc: h3=":443"; ma=2592000
@@ -106,9 +106,9 @@ Vary: Accept-Encoding
 	<h2 class="h2">Status</h2>
 	<p>
 		To view the status of our services, go to <a
-			href="https://status.gwei.cz/status/atscan"
+			href={data.config.status}
 			target="_blank"
-			class="underline hover:no-underline">https://status.gwei.cz/status/atscan</a
+			class="underline hover:no-underline">{data.config.status}</a
 		>.
 	</p>
 </div>

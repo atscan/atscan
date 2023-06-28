@@ -1,5 +1,5 @@
 <script>
-	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
+	import { dataTableHandler, tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import { dateDistance, formatNumber } from '$lib/utils.js';
 	import { goto } from '$app/navigation';
 	import { writable } from 'svelte/store';
@@ -61,7 +61,7 @@
 </script>
 
 <svelte:head>
-	<title>PDS Instances | ATScan</title>
+	<title>PDS Instances | {data.config.name}</title>
 </svelte:head>
 
 <div class="container mx-auto p-8 space-y-8">
