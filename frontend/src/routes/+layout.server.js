@@ -4,13 +4,14 @@ import * as _ from 'lodash';
 import { env } from '$env/dynamic/private';
 
 export async function load({ fetch }) {
+
 	const config = {
-		name: env.ATSCAN_NAME,
-		domain: env.ATSCAN_DOMAIN,
-		api: env.ATSCAN_FE_API,
-		web: env.ATSCAN_FE_WEB,
-		git: env.ATSCAN_GIT,
-		status: env.ATSCAN_STATUS
+		name: 'ATScan',
+		domain: 'atscan.net',
+		api: 'https://api.atscan.net',
+		web: 'https://atscan.net',
+		git: 'https://github.com/atscan/atscan',
+		status: 'https://status.gwei.cz/status/atscan',
 	};
 
 	const res = await fetch(`${config.api}/plc`);
