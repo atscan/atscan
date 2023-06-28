@@ -12,8 +12,8 @@ module.exports = {
 	theme: {
 		extend: {
 			colors: {
-				'ats-bsky': '#3399ff',
-				'ats-sbox': '#eab308'
+				'ats-fed-bluesky': '#3399ff',
+				'ats-fed-sandbox': '#eab308'
 			}
 		}
 	},

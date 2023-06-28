@@ -6,7 +6,9 @@
 
 	const models = {
 		pds: { url: `${data.config.api}/pds/%`, key: 'host' },
-		did: { url: `${data.config.api}/%`, key: 'did' }
+		did: { url: `${data.config.api}/%`, key: 'did' },
+		client: { url: `${data.config.api}/client/%`, key: 'id' },
+		fed: { url: `${data.config.api}/fed/%`, key: 'id' }
 	};
 	const config = models[model];
 	const url = config.url.replace('%', data.item[config.key]);

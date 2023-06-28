@@ -1,5 +1,5 @@
 <script>
-	/** dark:bg-ats-bsky dark:bg-ats-sbox */
+	/** dark:bg-ats-fed-bluesky dark:bg-ats-fed-sandbox */
 </script>
 
 <div class="w-full h-full bg-ats-bsky" />

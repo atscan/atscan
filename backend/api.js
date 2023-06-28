@@ -25,7 +25,7 @@ router
       item.host = item.url.replace(/^https?:\/\//, "");
       item.env = (ats.BSKY_OFFICIAL_PDS.includes(item.url) &&
           item.plcs.includes("https://plc.directory"))
-        ? "bsky"
+        ? "bluesky"
         : (item.plcs.includes("https://plc.bsky-sandbox.dev")
           ? "sandbox"
           : null);
@@ -47,7 +47,7 @@ router
     ctx.response.body = out;
     perf(ctx);
   })
-  .get("/did", async (ctx) => {
+  .get("/dids", async (ctx) => {
     const out = [];
     const query = { $and: [{}] };
     let sort = { time: -1 };
@@ -115,9 +115,9 @@ router
     const did = ctx.params.id;
     const item = await ats.db.did.findOne({ did });
     item.env = (item.src === "https://plc.directory")
-      ? "bsky"
+      ? "bluesky"
       : (item.src === "https://plc.bsky-sandbox.dev")
-      ? "sbox"
+      ? "sandbox"
       : null;
     ctx.response.body = item;
     perf(ctx);
@@ -137,7 +137,7 @@ router
     item.host = item.url.replace(/^https?:\/\//, "");
     item.env = (ats.BSKY_OFFICIAL_PDS.includes(item.url) &&
         item.plcs.includes("https://plc.directory"))
-      ? "bsky"
+      ? "bluesky"
       : (item.plcs.includes("https://plc.bsky-sandbox.dev") ? "sandbox" : null);
     ctx.response.body = item;
     perf(ctx);

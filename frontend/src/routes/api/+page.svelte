@@ -8,14 +8,16 @@
 
 	const sourceData = [
 		{
-			path: '/did',
+			path: '/dids',
 			desc: 'Get all DIDs',
-			example: ['/did', '/did?q=pds:bsky.social', '/did?q=.cz$']
+			example: ['/dids', '/dids?q=pds:bsky.social', '/dids?q=.cz$']
 		},
 		{ path: '/[did]', desc: 'Get DID item', example: ['/did:plc:524tuhdhh3m7li5gycdn6boe'] },
 		{ path: '/pds', desc: 'Get all PDS Instances', example: ['/pds', '/pds?q=gwei.cz'] },
 		{ path: '/pds/[id]', desc: 'Get PDS item', example: ['/pds/bsky.social'] },
-		{ path: '/plc', desc: 'Get all PLC Directories', example: ['/plc'] }
+		{ path: '/plc', desc: 'Get all PLC Directories', example: ['/plc'] },
+		{ path: '/feds', desc: 'Get all Federations', example: ['/feds'] },
+		{ path: '/clients', desc: 'Get all Clients', example: ['/clients'] }
 	];
 
 	$: tableSimple = {
@@ -69,12 +71,12 @@
 	<h3 class="h3">Mirrored paths (web & api)</h3>
 	<p>
 		Most endpoints mirror the web interface path, so for example the <a
-			href="{data.config.api}/did?q=pds:test-pds.gwei.cz"
-			class="code">{data.config.api}/did?q=pds:test-pds.gwei.cz</a
+			href="{data.config.web}/dids?q=pds:test-pds.gwei.cz"
+			class="code">{data.config.web}/dids?q=pds:test-pds.gwei.cz</a
 		>
 		page will list all DIDs on this PDS and the
-		<a href="{data.config.api}/did?q=pds:test-pds.gwei.cz" class="code"
-			>{data.config.api}/did?q=pds:test-pds.gwei.cz</a
+		<a href="{data.config.api}/dids?q=pds:test-pds.gwei.cz" class="code"
+			>{data.config.api}/dids?q=pds:test-pds.gwei.cz</a
 		> page will return the same as JSON.
 	</p>
 
@@ -82,7 +84,7 @@
 
 	<Table source={tableSimple} />
 
-	<!--CodeBlock code={`http -F {data.config.api}/did
+	<!--CodeBlock code={`http -F {data.config.api}/dids
 > HTTP/1.1 200 OK
 Access-Control-Allow-Origin: *
 Alt-Svc: h3=":443"; ma=2592000

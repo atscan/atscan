@@ -45,7 +45,10 @@
 			/** @event {rowMetaData} selected - Fires when a table row is clicked. */
 			dispatch('selected', rowMetaData);
 		}
-		if (event.target.className !== 'anchor') {
+		if (
+			event.target.className !== 'anchor' &&
+			!event.target.parentElement.className.includes('anchor')
+		) {
 			event.preventDefault();
 			const rowMetaData = source.meta ? source.meta[rowIndex] : source.body[rowIndex];
 			const url = rowMetaData[1];

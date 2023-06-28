@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 export async function load({ fetch, url, parent }) {
 	const { config } = await parent();
 	let q = url.searchParams.get('q');
-	const res = await fetch(`${config.api}/did` + (q ? `?q=${q}` : ''), {
+	const res = await fetch(`${config.api}/dids` + (q ? `?q=${q}` : ''), {
 		headers: { 'x-ats-wrapped': 'true' }
 	});
 	const json = await res.json();

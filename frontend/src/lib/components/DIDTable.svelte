@@ -6,10 +6,8 @@
 	export let data;
 
 	function tableMap({ val, key, row }) {
-		if (key === 'world') {
-		}
 		if (key === 'srcHost') {
-			val = `<a href="/did?q=plc:${val}" class="anchor">${val}</a>`;
+			val = `<a href="/dids?q=plc:${val}" class="anchor">${val}</a>`;
 		}
 		if (key === 'pds') {
 			const host = (val = val
@@ -21,7 +19,8 @@
 		}
 		if (key === 'did') {
 			const did = val;
-			const plc = data.plc.find((i) => i.url === row.src);
+			const fedId = row.src === 'https://plc.directory' ? 'bluesky' : 'sandbox';
+			const fed = data.ecosystem.data.federations.find((f) => f.id === fedId);
 			val = `<div class="flex gap-6">`;
 			val += `    <div>`;
 			val += `        <div class="text-lg inline-block"><a href="/${did}" class=""><span class="opacity-50">did:plc:</span><span class="font-semibold opacity-100">${did.replace(
@@ -32,7 +31,7 @@
 				.filter((h) => !h.match(/at:\/\/data:x\//))
 				.map((h) => h.replace(/^at:\/\//, ''));
 			val += `        <div class="mt-1.5">`;
-			val += `            <span class="mr-2 badge text-xs variant-filled ${plc.color} dark:${plc.color} opacity-70 text-white dark:text-black">${plc.name}</span>`;
+			val += `            <span class="mr-2 badge text-xs variant-filled bg-ats-fed-${fed.id} dark:bg-ats-fed-${fed.id} opacity-70 text-white dark:text-black">${fed.id}</span>`;
 			val += `            <span>${handles
 				.map(
 					(h) => `<a href="https://bsky.app/profile/${h}" target="_blank" class="anchor">@${h}</a>`

@@ -16,7 +16,7 @@
 				value: item.plcs
 					.map((p) => {
 						const host = p.replace(/^https?:\/\//, '');
-						return `<a href="/plc/${host}" class="anchor">${host}</a>`;
+						return `<a href="/dids?q=plc:${host}" class="anchor">${host}</a>`;
 					})
 					.join(', ')
 			},
@@ -26,7 +26,7 @@
 			},
 			{
 				title: 'DID count',
-				value: `${formatNumber(item.didsCount)} (<a href="/did?q=pds:${
+				value: `${formatNumber(item.didsCount)} (<a href="/dids?q=pds:${
 					item.host
 				}" class="anchor">list</a>)`
 			},
@@ -90,10 +90,10 @@
 			{ label: 'PDS Instances', link: '/pds' },
 			{
 				label: `<span class="mr-2 badge ${
-					item.env === 'bsky'
-						? 'bg-ats-bsky'
+					item.env === 'bluesky'
+						? 'bg-ats-fed-bluesky'
 						: item.env === 'sandbox'
-						? 'bg-ats-sbox'
+						? 'bg-ats-fed-sandbox'
 						: 'bg-gray-500'
 				} text-white dark:text-black">${item.env}</span> federation`,
 				link: `/pds?federation=${item.env}`
@@ -122,13 +122,13 @@
 	</div>
 
 	<h2 class="h2">
-		<a href="/did?q=pds:{item.host}">DIDs</a>
+		<a href="/dids?q=pds:{item.host}">DIDs</a>
 		<span class="font-normal text-2xl">({formatNumber(data.dids.count)})</span>
 	</h2>
 	<DIDTable sourceData={data.dids.items} {data} />
 	{#if data.dids.count > data.dids.items.length}
 		<div>
-			<a href="/did?q=pds:{item.host}"
+			<a href="/dids?q=pds:{item.host}"
 				><button class="btn variant-filled"
 					>Show all {formatNumber(data.dids.count)} DIDs hosted by {item.host}</button
 				></a

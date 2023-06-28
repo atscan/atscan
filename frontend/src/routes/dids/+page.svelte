@@ -20,7 +20,7 @@
 	let periodicUpdate = null;
 	onMount(() => {
 		periodicUpdate = setInterval(() => {
-			invalidate((url) => url.pathname === '/did');
+			invalidate((url) => url.pathname === '/dids');
 		}, 60 * 1000);
 	});
 	onDestroy(() => {
@@ -36,7 +36,7 @@
 			q = q.replace(/env:sbox/, '');
 		}
 		q = q.trim();
-		const path = '/did' + (q !== '' ? `?q=${q}` : '');
+		const path = '/dids' + (q !== '' ? `?q=${q}` : '');
 		const currentPath = $page.url.pathname + $page.url.search;
 		if (currentPath === path) {
 			return null;

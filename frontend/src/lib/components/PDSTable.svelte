@@ -9,7 +9,7 @@
 		if (key === 'plcs' && val) {
 			val = val
 				.map((i) => i.replace(/^https?:\/\//, ''))
-				.map((p) => `<a href="/did?q=plc:${p}" class="anchor">${p}</a>`)
+				.map((p) => `<a href="/dids?q=plc:${p}" class="anchor">${p}</a>`)
 				.join(', ');
 			if (row.inspect?.current.data?.availableUserDomains) {
 				val += '<br/>(' + row.inspect?.current.data?.availableUserDomains.join(', ') + ')';
@@ -17,15 +17,10 @@
 		}
 		if (key === 'env') {
 			let arr = [];
-			const plc =
-				val === 'sandbox'
-					? data.plc.find((i) => i.code === 'sbox')
-					: val === 'bsky'
-					? data.plc.find((i) => i.code === 'bsky')
-					: null;
-			if (plc) {
+			const fed = data.ecosystem.data.federations.find((f) => f.id === val);
+			if (fed) {
 				arr.push(
-					`<span class="badge variant-filled ${plc.color} dark:${plc.color} opacity-70 text-white dark:text-black">${plc.name}</span>`
+					`<span class="badge variant-filled bg-ats-fed-${fed.id} dark:bg-ats-fed-${fed.id} opacity-70 text-white dark:text-black">${fed.id}</span>`
 				);
 			}
 			val = arr.reverse().join(' ');
@@ -65,7 +60,7 @@
 			}
 		}
 		if (key === 'didsCount') {
-			val = `<a href="/did?q=pds:${row.host}" class="anchor">${formatNumber(val)}</a>`;
+			val = `<a href="/dids?q=pds:${row.host}" class="anchor">${formatNumber(val)}</a>`;
 		}
 		if (key === 'lastOnline' && row.inspect) {
 			val = `<span class="text-xs">${

@@ -56,9 +56,9 @@
 				<div class="lg:ml-8 flex gap-1">
 					<div class="relative hidden lg:block">
 						<a
-							href="/did"
+							href="/dids"
 							class="btn hover:variant-soft-primary"
-							class:bg-primary-active-token={$page.url.pathname.startsWith('/did')}
+							class:bg-primary-active-token={$page.url.pathname.startsWith('/dids')}
 							><span>DIDs</span></a
 						>
 					</div>
@@ -72,17 +72,18 @@
 					</div>
 					<div class="relative hidden lg:block">
 						<a
-							href="/plc"
+							href="/feds"
 							class="btn hover:variant-soft-primary"
-							class:bg-primary-active-token={$page.url.pathname === '/plc'}
-							><span>PLC Directories</span></a
+							class:bg-primary-active-token={$page.url.pathname === '/feds'}
+							><span>Federations</span></a
 						>
 					</div>
 					<div class="relative hidden lg:block">
 						<a
-							href="/api"
+							href="/clients"
 							class="btn hover:variant-soft-primary"
-							class:bg-primary-active-token={$page.url.pathname === '/api'}><span>API</span></a
+							class:bg-primary-active-token={$page.url.pathname === '/clients'}
+							><span>Clients</span></a
 						>
 					</div>
 				</div>
@@ -106,6 +107,13 @@
 					Twitter
 				</a>
 				-->
+				<div class="relative hidden lg:block">
+					<a
+						href="/api"
+						class="btn hover:variant-soft-primary"
+						class:bg-primary-active-token={$page.url.pathname === '/api'}><span>API</span></a
+					>
+				</div>
 				<div class="text-sm opacity-50">v{data.pkg.version}</div>
 				<a
 					class="btn btn-sm variant-ghost-surface hover:variant-soft-primary external"
