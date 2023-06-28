@@ -1,6 +1,6 @@
 {
 	"name": "atscan-fe",
-	"version": "0.3.4-alpha",
+	"version": "0.3.5-alpha",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
