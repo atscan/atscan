@@ -65,7 +65,7 @@
 </svelte:head>
 
 <div class="container mx-auto p-8 space-y-8">
-	<h1 class="h1">PDS Instances ({sourceData.length})</h1>
+	<h1 class="h1">PDS Instances</h1>
 	<form on:submit|preventDefault={formSubmit} class="flex gap-4">
 		<input
 			class="input"
@@ -76,5 +76,14 @@
 		/>
 		<!--button type="submit" class="btn variant-filled">Search</button-->
 	</form>
+
+	<div class="text-xl">
+		{#if $search && $search?.trim() !== ''}
+			Search for <code class="code text-2xl variant-tertiary">{$search.trim()}</code>
+			({formatNumber(sourceData.length)}):
+		{:else}
+			All PDS Instances ({formatNumber(sourceData.length)}):
+		{/if}
+	</div>
 	<PDSTable {sourceData} {data} />
 </div>
