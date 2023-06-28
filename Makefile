@@ -23,6 +23,9 @@ api-ws:
 did-crawler:
 	deno run --unstable --allow-net --allow-read --allow-env --allow-sys ./backend/did-crawler.js
 
+fe-rebuild:
+	cd frontend && npm run build && pm2 restart atscan-fe
+
 test:
 	deno test --unstable --allow-read ./backend/test.js
 

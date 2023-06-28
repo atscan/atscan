@@ -13,23 +13,25 @@
         items: [
             { title: 'PLCs used', value: item.plcs.map(p => {
                     const host = p.replace(/^https?:\/\//, '')
-                    return `<a href="/plc/${host}" class="underline hover:no-underline">${host}</a>`
+                    return `<a href="/plc/${host}" class="anchor">${host}</a>`
                 }).join(', ')},
             { title: 'User domains', value: item.inspect?.current?.data?.availableUserDomains?.join(', ') || 'n/a' },
-            { title: 'DID count', value: `${formatNumber(item.didsCount)} (<a href="/did?q=pds:${item.host}" class="underline hover:no-underline">list</a>)` },
-            { title: 'Response time', value: item.inspect?.current?.ms ? item.inspect?.current?.ms+'ms (from Central Europe)' : `Error: ${item.inspect?.current?.err}` },
-            { title: 'Last contact', value: `${dateDistance(item.inspect?.current?.time)} ago (${item.inspect?.current?.time})` },
+            { title: 'DID count', value: `${formatNumber(item.didsCount)} (<a href="/did?q=pds:${item.host}" class="anchor">list</a>)` },
+            { title: 'Response time', value: item.inspect?.current?.ms ? item.inspect?.current?.ms+'ms (from Central Europe)' : `Error` },
+            { title: 'Last online', value: (item.inspect?.lastOnline ? `${dateDistance(item.inspect?.lastOnline)} ago (${item.inspect?.lastOnline})` : 'never') + ` (<a href="${item.url}/xrpc/com.atproto.server.describeServer" class="anchor">inspect</a>)` },
+            item.inspect?.current?.err ? { title: 'Error', value: item.inspect?.current?.err ? `${item.inspect.current.err}` : '-' } : null,            
+            { title: 'Last scan', value: item.inspect?.current?.time ? `${dateDistance(item.inspect?.current?.time)} ago (${item.inspect?.current?.time})` : '-' },
         ]
     })
     infoMaps.push({
-        title: `<span class="text-2xl">${getFlagEmoji(item.ip.country)}</span> <a href="http://ipinfo.io/${item.ip.ip}" target="_blank" class="underline hover:no-underline">${item.ip.ip}</a>`,
+        title: (item.ip ? `<span class="text-2xl">${getFlagEmoji(item.ip.country)}</span> <a href="http://ipinfo.io/${item.ip.ip}" target="_blank" class="anchor">${item.ip.ip}</a>` : 'ip not available'),
         items: [
-            { title: 'Host', value: `${item.ip.hostname}` },
-            { title: 'Location', value: `${item.ip.country} - ${item.ip.city}, ${item.ip.region} (<a href="https://www.google.com/maps?q=${item.ip.loc}" target="_blank" class="underline hover:no-underline">${item.ip.loc})</a>` },
+            { title: 'Host', value: item.ip?.hostname || '-' },
+            { title: 'Location', value: item.ip ? `${item.ip.country} - ${item.ip.city}, ${item.ip.region} (<a href="https://www.google.com/maps?q=${item.ip.loc}" target="_blank" class="anchor">${item.ip.loc})</a>` : '-' },
             //{ title: 'Coordinates', value: item.ip.loc },
-            { title: 'AS / Organization', value: item.ip.org },
+            { title: 'AS / Organization', value: item.ip?.org || '-' },
             //{ title: 'Postal code', value: item.ip.postal },
-            { title: 'Timezone', value: item.ip.timezone },
+            { title: 'Timezone', value: item.ip?.timezone || '-' },
         ]
     })
 </script>
@@ -53,7 +55,7 @@
                     <h3 class="h4 uppercase mb-2">{@html map.title}</h3>
                 {/if}
                 <div class="">
-                    {#each map.items as i}
+                    {#each map.items.filter(i => Boolean(i)) as i}
                         <div class="flex gap-2 w-full mb-1"><div class="font-semibold">{i.title}</div><div class="">{@html i.value}</div></div>
                     {/each}
                 </div>

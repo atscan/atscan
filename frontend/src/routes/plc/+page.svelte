@@ -23,7 +23,7 @@
                     val = dateDistance(val)
                 }
                 if (key === 'didsCount') {
-                    val = `<a href="/did?q=plc:${row.host}" class="hover:underline">${formatNumber(val)}</a>`
+                    val = `<a href="/did?q=plc:${row.host}" class="anchor">${formatNumber(val)}</a>`
                 }
                 return mappedRow[key] = val
 		    })

@@ -13,13 +13,13 @@
                 if (key === 'world') {
                 }
                 if (key === 'srcHost') {
-                    val = `<a href="/did?q=plc:${val}" class="hover:underline">${val}</a>`
+                    val = `<a href="/did?q=plc:${val}" class="anchor">${val}</a>`
                 }
                 if (key === 'pds') {
                     const host = 
                     val = val.map(i => {
                         const host = i.replace(/^https?:\/\//, '')
-                        return `<a href="/pds/${host}" class='hover:underline'>${host}</a>`
+                        return `<a href="/pds/${host}" class='anchor'>${host}</a>`
                     }).join(', ')
                 }
                 if (key === 'did') {
@@ -27,11 +27,11 @@
                     const plc = data.plc.find(i => i.url === row.src)
                     val = `<div class="flex gap-6">`
                     val += `    <div>`
-                    val += `        <div class="text-lg inline-block"><a href="/${did}" class="hover:underline"><span class="opacity-50">did:plc:</span><span class="font-semibold opacity-100">${did.replace(/^did:plc:/, '')}</span></a></div>`
+                    val += `        <div class="text-lg inline-block"><a href="/${did}" class=""><span class="opacity-50">did:plc:</span><span class="font-semibold opacity-100">${did.replace(/^did:plc:/, '')}</span></a></div>`
                     const handles = row.revs[row.revs.length-1].operation.alsoKnownAs.filter(h => !h.match(/at:\/\/data:x\//)).map(h => h.replace(/^at:\/\//, ''))
                     val += `        <div class="mt-1.5">`
                     val += `            <span class="mr-2 badge text-xs variant-filled ${plc.color} dark:${plc.color} opacity-70 text-white dark:text-black">${plc.name}</span>`
-                    val += `            <span>${handles.map(h => `<a href="https://bsky.app/profile/${h}" target="_blank" class="hover:underline">@${h}</a>`).join(', ')}</span>`
+                    val += `            <span>${handles.map(h => `<a href="https://bsky.app/profile/${h}" target="_blank" class="anchor">@${h}</a>`).join(', ')}</span>`
                     val += `        </div>`
                     val += `    </div>`
                     val += "</div>"
@@ -45,6 +45,12 @@
                 if (key === 'img') {
                     val = `<div class="text-right w-full"><div class="inline-block"><a href="/${row.did}"><img src="${identicon(row.did)}" class="w-16 h-16 rounded-lg bg-gray-200 dark:bg-gray-800 float-left" /></a></div></div>`
                 }
+                if (key === 'did_raw') {
+                    val = row.did
+                }
+                if (key === 'url') {
+                    val = `/${row.did}`
+                }
 
                 return mappedRow[key] = val
 		    })
@@ -55,7 +61,7 @@
         // A list of heading labels.
         head: ['', 'DID', '#', 'PLC', 'PDS', 'Last mod'],
         body: tableMapperValuesLocal(sourceData || [], ['img', 'did', 'deep', 'srcHost', 'pds', 'time']),
-        meta: tableMapperValues(sourceData || [], ['did']),
+        meta: tableMapperValuesLocal(sourceData || [], ['did_raw', 'url']),
     };
 
 </script>

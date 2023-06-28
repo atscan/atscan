@@ -3,11 +3,14 @@ import * as _ from "lodash";
 /** @type {import('./$types').PageLoad} */
 export async function load({ fetch, params }) {
   const res = await fetch("https://api.atscan.net/pds");
-  const pds = _.orderBy(await res.json(), ["env", "inspect.current.err", "didsCount"], [
+  const arr = (await res.json()).map(i => {
+    i.err = Boolean(i.inspect?.current?.err)
+    return i
+  })
+  const pds = _.orderBy(arr, ["env", "err", "didsCount"], [
+    "asc",
     "asc",
     "desc",
-    "desc",
-    "asc",
   ]);
   return { 
     pds

@@ -58,7 +58,7 @@
                 <span class="opacity-50 font-normal">did:plc:</span><span class="font-semibold opacity-100">{item.did.replace(/^did:plc:/, '')}</span>
             </h1>
             <div class="text-2xl mt-4">
-                {@html handles.map(h => `<a href="https://bsky.app/profile/${h}" target="_blank" class="hover:underline">@${h}</a>`).join(', ')}
+                {@html handles.map(h => `<a href="https://bsky.app/profile/${h}" target="_blank" class="anchor">@${h}</a>`).join(', ')}
             </div>
         </div>
     </div>

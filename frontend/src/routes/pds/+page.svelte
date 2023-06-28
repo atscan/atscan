@@ -33,7 +33,7 @@
 			keys.forEach((key) => { 
 				let val = row[key]
 				if (key === 'plcs' && val) {
-					val = val.map(i => i.replace(/^https?:\/\//, '')).map(p => `<a href="/did?q=plc:${p}" class="hover:underline">${p}</a>`).join(', ')
+					val = val.map(i => i.replace(/^https?:\/\//, '')).map(p => `<a href="/did?q=plc:${p}" class="anchor">${p}</a>`).join(', ')
 					if (row.inspect?.current.data?.availableUserDomains) {
 						val += '<br/>(' + row.inspect?.current.data?.availableUserDomains.join(', ') + ')'
 					}
@@ -47,32 +47,40 @@
 					val = arr.reverse().join(' ')
 				}
 				if (key === 'host') {
-					val = `<a href="/pds/${val}" class="hover:underline"><span class="font-semibold text-lg">${val}</span></a>`
+					val = `<a href="/pds/${val}" class=""><span class="font-semibold text-lg">${val}</span></a>`
 				}
 				if (key === 'ms') {
 					val = row.inspect?.current.err
-						? `<a href="${row.url}/xrpc/com.atproto.server.describeServer" target="_blank" title="${row.inspect.current.err}" class="hover:underline">error</a>`
-						: row.inspect?.current.ms ? `<a href="${row.url}/xrpc/com.atproto.server.describeServer" target="_blank" class="hover:underline">${row.inspect.current.ms + 'ms'}</a>` : '-'
+						? `<a href="${row.url}/xrpc/com.atproto.server.describeServer" target="_blank" title="${row.inspect.current.err}" class="anchor">error</a>`
+						: row.inspect?.current.ms ? `<a href="${row.url}/xrpc/com.atproto.server.describeServer" target="_blank" class="anchor">${row.inspect.current.ms + 'ms'}</a>` : '-'
 				}
 				if (key === 'location') {
 					val = row.ip && row.ip.country
 						? `<img src="/cc/${row.ip.country.toLowerCase()}.png" alt="${row.ip.country}" title="${row.ip.country}" class="inline-block mr-2" />`
-						: ''
+						: '-'
 					if (row.ip && row.ip.city) {
 						val += `${row.ip.city} - `
 					}
-					const dnsIp = row.dns ? row.dns.Answer?.filter(a => a.type === 1)[0].data : null
-					val += `<a href="http://ipinfo.io/${dnsIp}" target="_blank" class="hover:underline">${dnsIp}</a>` || '-'
-					if (row.ip && row.ip.regionName) {
-						val += ' ('+row.ip.regionName+')'
+					if (row.ip) {
+						const dnsIp = row.dns ? row.dns.Answer?.filter(a => a.type === 1)[0].data : null
+						val += `<a href="http://ipinfo.io/${dnsIp}" target="_blank" class="anchor">${dnsIp}</a>` || '-'
+						if (row.ip && row.ip.regionName) {
+							val += ' ('+row.ip.regionName+')'
+						}
+						val += `<br /><span class="text-xs">${row.ip?.org || 'n/a'}</span>`
 					}
-					val += `<br /><span class="text-xs">${row.ip?.org || 'n/a'}</span>`
 				}
 				if (key === 'didsCount') {
-					val = `<a href="/did?q=pds:${row.host}" class="hover:underline">${formatNumber(val)}</a>`
+					val = `<a href="/did?q=pds:${row.host}" class="anchor">${formatNumber(val)}</a>`
 				}
 				if (key === 'lastOnline' && row.inspect) {
 					val = `<span class="text-xs">${row.inspect?.lastOnline ? dateDistance(row.inspect?.lastOnline) + ' ago' : '-'}</span>`
+				}
+				if (key === 'host_raw') {
+					val = row.host
+				}
+				if (key === 'url') {
+					val = `/pds/${row.host}`
 				}
 
 				return mappedRow[key] = val
@@ -110,35 +118,16 @@
 
 	})(baseData)
 
-	let sourceDataOffline = data.pds.filter(d => !d.inspect?.lastOnline)
-
 	function formSubmit() {
 		const url = '?q='+$search
 		goto(url)
-		// refilter
-		//sourceData = data.pds.filter(d => d.inspect?.lastOnline).filter(i => i.url.match(new RegExp($search, 'i')))
-		//genTableSimple()
 		return false
 	}
 
 	$: tableSimple = {
-		// A list of heading labels.
 		head: ['Federation', 'Host', 'DIDs', 'Location', 'PLCs (User Domains)', 'Resp. time', 'Last Online'],
-		// The data visibly shown in your table body UI.
-		//body: mapper(sourceData, ['host', 'type', 'plc']),
 		body: tableMapperValuesLocal(sourceData, ['env', 'host', 'didsCount', 'location', 'plcs', 'ms', 'lastOnline' ]),
-		// Optional: The data returned when interactive is enabled and a row is clicked.
-		meta: tableMapperValues(sourceData, ['host']),
-		// Optional: A list of footer labels.
-		//foot: ['Total', '', '<code class="code">5</code>']
-	};
-
-
-	const tableSimpleOffline = {
-		// A list of heading labels.
-		head: ['Federation', 'Host', 'DIDs', 'Location', 'Delay', 'PLCs' ],
-		body: tableMapperValuesLocal(sourceDataOffline, ['env', 'host', 'ms', 'location', 'didsCount', 'plcs']),
-		meta: tableMapperValues(sourceDataOffline, ['host']),
+		meta: tableMapperValuesLocal(sourceData, ['host_raw', 'url']),
 	};
 
 </script>

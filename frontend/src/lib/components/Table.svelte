@@ -1,9 +1,7 @@
-<script lang="ts">
+<script>
 	import { createEventDispatcher } from 'svelte';
 	import { tableA11y } from '@skeletonlabs/skeleton';
-
-	// Types
-	import type { CssClasses, TableSource } from '@skeletonlabs/skeleton';
+    import { goto } from '$app/navigation';
 
 	const dispatch = createEventDispatcher();
 
@@ -12,44 +10,53 @@
 	 * Provide the full set of table source data.
 	 * @type {TableSource}
 	 */
-	export let source: TableSource;
+	export let source;
 	/** Enables row hover style and `on:selected` event when rows are clicked. */
 	export let interactive = false;
     export let interactiveOnlyHover = true;
 
 	// Props (styles)
 	/** Override the Tailwind Element class. Replace this for a headless UI. */
-	export let element: CssClasses = 'table';
+	export let element = 'table';
 	/** Provide classes to set the table text size. */
-	export let text: CssClasses = '';
+	export let text = '';
 	/** Provide classes to set the table text color. */
-	export let color: CssClasses = '';
+	export let color = '';
 	/** Provide arbitrary classes for the table head. */
-	export let regionHead: CssClasses = '';
+	export let regionHead = '';
 	/** Provide arbitrary classes for the table head cells. */
-	export let regionHeadCell: CssClasses = '';
+	export let regionHeadCell = '';
 	/** Provide arbitrary classes for the table body. */
-	export let regionBody: CssClasses = '';
+	export let regionBody = '';
 	/** Provide arbitrary classes for the table cells. */
-	export let regionCell: CssClasses = '';
+	export let regionCell = '';
 	/** Provide arbitrary classes for the table foot. */
-	export let regionFoot: CssClasses = '';
+	export let regionFoot = '';
 	/** Provide arbitrary classes for the table foot cells. */
-	export let regionFootCell: CssClasses = '';
+	export let regionFootCell = '';
 
 	// Row Click Handler
-	function onRowClick(event: MouseEvent | KeyboardEvent, rowIndex: number): void {
-		if (!interactive) return;
-		event.preventDefault();
-		event.stopPropagation();
-		// Prefer meta row info if available, else fallback to body row info
-		const rowMetaData = source.meta ? source.meta[rowIndex] : source.body[rowIndex];
-		/** @event {rowMetaData} selected - Fires when a table row is clicked. */
-		dispatch('selected', rowMetaData);
+	function onRowClick(event, rowIndex) {
+		if (interactive) {
+			event.preventDefault();
+			event.stopPropagation();
+			// Prefer meta row info if available, else fallback to body row info
+			const rowMetaData = source.meta ? source.meta[rowIndex] : source.body[rowIndex];
+			/** @event {rowMetaData} selected - Fires when a table row is clicked. */
+			dispatch('selected', rowMetaData);
+		}
+		if (event.target.className !== 'anchor') {
+			event.preventDefault();
+			const rowMetaData = source.meta ? source.meta[rowIndex] : source.body[rowIndex];
+			const url = rowMetaData[1]
+			if (url) {
+				goto(url)
+			}
+		}
 	}
 
 	// Row Keydown Handler
-	function onRowKeydown(event: KeyboardEvent, rowIndex: number): void {
+	function onRowKeydown(event, rowIndex) {
 		if (['Enter', 'Space'].includes(event.code)) onRowClick(event, rowIndex);
 	}
 
