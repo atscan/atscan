@@ -26,6 +26,12 @@ did-crawler:
 fe-rebuild:
 	cd frontend && npm run build && pm2 restart atscan-fe
 
+format:
+	cd backend && deno fmt
+	cd frontend && npm run format
+
+fmt: format
+
 test:
 	deno test --unstable --allow-read ./backend/test.js
 

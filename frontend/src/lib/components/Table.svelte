@@ -1,7 +1,7 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import { tableA11y } from '@skeletonlabs/skeleton';
-    import { goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 
 	const dispatch = createEventDispatcher();
 
@@ -13,7 +13,7 @@
 	export let source;
 	/** Enables row hover style and `on:selected` event when rows are clicked. */
 	export let interactive = false;
-    export let interactiveOnlyHover = true;
+	export let interactiveOnlyHover = true;
 
 	// Props (styles)
 	/** Override the Tailwind Element class. Replace this for a headless UI. */
@@ -48,9 +48,9 @@
 		if (event.target.className !== 'anchor') {
 			event.preventDefault();
 			const rowMetaData = source.meta ? source.meta[rowIndex] : source.body[rowIndex];
-			const url = rowMetaData[1]
+			const url = rowMetaData[1];
 			if (url) {
-				goto(url)
+				goto(url);
 			}
 		}
 	}
