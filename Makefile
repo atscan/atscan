@@ -37,6 +37,9 @@ fmt: format
 
 rebuild: be-restart fe-rebuild
 
+start:
+	pm2 start pm2.config.js
+
 test:
 	deno test --unstable --allow-read ./backend/test.js
 
