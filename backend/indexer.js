@@ -1,4 +1,5 @@
 import { ATScan } from "./lib/atscan.js";
+import whoiser from 'npm:whoiser';
 
 const wait = 60 * 15;
 
@@ -11,6 +12,9 @@ async function index(ats) {
     console.log(`${pds.url}: ${didsCount}`);
     await ats.db.pds.updateOne({ url: pds.url }, { $set: { didsCount } });
   }
+
+  console.log(await whoiser('dev.otaso-sky.blue'))
+  
 }
 
 if (Deno.args[0] === "daemon") {
