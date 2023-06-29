@@ -49,9 +49,7 @@
 	const breadcrumb = [{ label: 'DIDs', link: '/dids' }];
 	if (item.fed) {
 		breadcrumb.push({
-			label: `<span class="mr-2 badge ${
-				item.fed ? 'bg-ats-fed-' + item.fed : 'bg-gray-500'
-			} text-white dark:text-black">${item.fed}</span> federation`,
+			label: `<span class="mr-2 badge bg-ats-fed-${item.fed} text-white dark:text-black">${item.fed}</span> federation`,
 			link: `/dids?q=fed:${item.fed}`
 		});
 	}

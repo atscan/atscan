@@ -79,25 +79,17 @@
 			{ title: 'Timezone', value: item.ip?.timezone || '-' }
 		]
 	});
+
+	const breadcrumb = [{ label: 'PDS Instances', link: '/pds' }];
+	if (item.fed) {
+		breadcrumb.push({
+			label: `<span class="mr-2 badge bg-ats-fed-${item.fed} text-white dark:text-black">${item.fed}</span> federation`,
+			link: `/pds?federation=${item.fed}`
+		});
+	}
 </script>
 
-<BasicPage
-	{data}
-	title={item.host}
-	breadcrumb={[
-		{ label: 'PDS Instances', link: '/pds' },
-		{
-			label: `<span class="mr-2 badge ${
-				item.env === 'bluesky'
-					? 'bg-ats-fed-bluesky'
-					: item.env === 'sandbox'
-					? 'bg-ats-fed-sandbox'
-					: 'bg-gray-500'
-			} text-white dark:text-black">${item.env}</span> federation`,
-			link: `/pds?federation=${item.env}`
-		}
-	]}
->
+<BasicPage {data} title={item.host} {breadcrumb}>
 	<div class="lg:grid grid-cols-2 gap-4">
 		{#each infoMaps as map}
 			<div class="card bg-white/20 p-4 lg:mb-0 mb-2">
