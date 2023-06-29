@@ -84,7 +84,7 @@
 	if (item.fed) {
 		breadcrumb.push({
 			label: `<span class="mr-2 badge bg-ats-fed-${item.fed} text-white dark:text-black">${item.fed}</span> federation`,
-			link: `/pds?federation=${item.fed}`
+			link: `/pds?q=fed:${item.fed}`
 		});
 	}
 </script>
