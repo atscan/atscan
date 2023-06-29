@@ -185,10 +185,7 @@ router
       return ctx.response.code = 404;
     }
     item.host = item.url.replace(/^https?:\/\//, "");
-    item.env = (ats.BSKY_OFFICIAL_PDS.includes(item.url) &&
-        item.plcs.includes("https://plc.directory"))
-      ? "bluesky"
-      : (item.plcs.includes("https://plc.bsky-sandbox.dev") ? "sandbox" : null);
+    item.fed = findPDSFed(item);
     ctx.response.body = item;
     perf(ctx);
   })
