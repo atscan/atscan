@@ -1,25 +1,30 @@
 <script>
 	import Table from '$lib/components/Table.svelte';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
-	import { dateDistance, identicon, formatNumber, customTableMapper } from '$lib/utils.js';
+	import {
+		dateDistance,
+		identicon,
+		formatNumber,
+		customTableMapper,
+		getDIDProfileUrl
+	} from '$lib/utils.js';
 	export let sourceData;
 	export let data;
 
 	function tableMap({ val, key, row }) {
 		if (key === 'srcHost') {
-			val = `<a href="/dids?q=plc:${val}" class="anchor">${val}</a>`;
-		}
-		if (key === 'pds') {
-			const host = (val = val
+			val = row.pds
 				.map((i) => {
 					const host = i.replace(/^https?:\/\//, '');
-					return `<a href="/pds/${host}" class='anchor'>${host}</a>`;
+					return `<a href="/pds/${host}" class="anchor">${host}</a>`;
 				})
-				.join(', '));
+				.join(', ');
+			val += `<div>(<a href="/dids?q=plc:${row.srcHost}" class="anchor">${row.srcHost}</a>)</div>`;
 		}
 		if (key === 'did') {
 			const did = val;
 			const fed = row.fed ? data.ecosystem.data.federations.find((f) => f.id === row.fed) : null;
+			const link = getDIDProfileUrl(fed, row);
 			val = `<div class="flex gap-6">`;
 			val += `    <div>`;
 			val += `        <div class="text-lg inline-block"><a href="/${did}" class=""><span class="opacity-50">did:plc:</span><span class="font-semibold opacity-100">${did.replace(
@@ -34,20 +39,18 @@
 			if (fed) {
 				val += `            <span class="mr-2 badge text-xs variant-filled bg-ats-fed-${fed.id} dark:bg-ats-fed-${fed.id} opacity-70 text-white dark:text-black">${fed.id}</span>`;
 			}
-			val += `            <span>${handles
-				.map(
-					(h) => `<a href="https://bsky.app/profile/${h}" target="_blank" class="anchor">@${h}</a>`
-				)
-				.join(', ')}</span>`;
+			val +=
+				`            <span>${handles
+					.map((h) => `<a href="${link}" target="_blank" class="anchor">@${h}</a>`)
+					.join(', ')} ` +
+				(row.revs.length > 1 ? `(#${row.revs.length - 1})` : '') +
+				`</span>`;
 			val += `        </div>`;
 			val += `    </div>`;
 			val += '</div>';
 		}
 		if (key === 'lastMod') {
-			val = dateDistance(val);
-		}
-		if (key === 'deep') {
-			val = row.revs.length;
+			val = `<span class="text-sm">${dateDistance(val)} ago</span>`;
 		}
 		if (key === 'img') {
 			val = `<div class="text-right w-full"><div class="inline-block w-16 h-16"><a href="/${
@@ -66,12 +69,8 @@
 	}
 	$: tableSimple = {
 		// A list of heading labels.
-		head: ['', 'DID', '#', 'PLC', 'PDS', 'Last mod'],
-		body: customTableMapper(
-			sourceData || [],
-			['img', 'did', 'deep', 'srcHost', 'pds', 'lastMod'],
-			tableMap
-		),
+		head: ['', 'DID', 'PDS (PLC)', 'Updated'],
+		body: customTableMapper(sourceData || [], ['img', 'did', 'srcHost', 'lastMod'], tableMap),
 		meta: customTableMapper(sourceData || [], ['did_raw', 'url'], tableMap)
 	};
 </script>

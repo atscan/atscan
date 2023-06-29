@@ -11,7 +11,10 @@
 				.map((i) => i.replace(/^https?:\/\//, ''))
 				.map((p) => `<a href="/dids?q=plc:${p}" class="anchor">${p}</a>`)
 				.join(', ');
-			if (row.inspect?.current.data?.availableUserDomains) {
+			if (
+				row.inspect?.current.data?.availableUserDomains &&
+				row.inspect.current.data.availableUserDomains.length > 0
+			) {
 				val += '<br/>(' + row.inspect?.current.data?.availableUserDomains.join(', ') + ')';
 			}
 		}

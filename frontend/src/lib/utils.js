@@ -40,3 +40,11 @@ export function getFlagEmoji(countryCode) {
 		.map((char) => 127397 + char.charCodeAt());
 	return String.fromCodePoint(...codePoints);
 }
+
+export function getDIDProfileUrl(fed, item) {
+	const base = 'https://bsky.app';
+	if (fed && fed.app) {
+		return `${fed.app}/profile/${item.did}`;
+	}
+	return `${base}/profile/${item.did}`;
+}

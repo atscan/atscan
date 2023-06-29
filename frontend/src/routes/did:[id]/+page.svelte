@@ -1,5 +1,5 @@
 <script>
-	import { dateDistance, identicon } from '$lib/utils.js';
+	import { dateDistance, identicon, getDIDProfileUrl } from '$lib/utils.js';
 	import { Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import SourceSection from '$lib/components/SourceSection.svelte';
@@ -46,6 +46,7 @@
 		meta: tableMapperValues(sourceData, ['cid'])
 	};
 
+	const fed = item.fed ? data.ecosystem.data.federations.find((f) => f.id === item.fed) : null;
 	const breadcrumb = [{ label: 'DIDs', link: '/dids' }];
 	if (item.fed) {
 		breadcrumb.push({
@@ -74,7 +75,7 @@
 				{@html handles
 					.map(
 						(h) =>
-							`<a href="https://bsky.app/profile/${h}" target="_blank" class="anchor">@${h}</a>`
+							`<a href="${getDIDProfileUrl(fed, item)}" target="_blank" class="anchor">@${h}</a>`
 					)
 					.join(', ')}
 			</div>
