@@ -12,6 +12,7 @@
 	import hljs from 'highlight.js';
 	import 'highlight.js/styles/github-dark.css';
 	import { storeHighlightJs } from '@skeletonlabs/skeleton';
+	import { Drawer, drawerStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { connect, StringCodec, JSONCodec } from 'nats.ws';
 
@@ -35,6 +36,22 @@
 			console.log('subscription closed');
 		})();
 	});
+
+	function drawerOpen() {
+		drawerStore.open({});
+	}
+
+	const navigationMaps = [
+		[
+			{ title: 'DIDs', url: '/dids' },
+			{ title: 'PDS Instances', url: '/pds' },
+			{ title: 'Federations', url: '/feds' }
+		],
+		[
+			{ title: 'API', url: '/api' },
+			{ title: 'AT Protocol', url: 'https://atproto.com/', external: true }
+		]
+	];
 </script>
 
 <svelte:head>
@@ -42,12 +59,63 @@
 	<script defer data-domain={data.config.domain} src="https://x.gwei.cz/js/script.js"></script>
 </svelte:head>
 
+<Drawer width="w-[75%]">
+	<h2 class="p-4">
+		<a href="/"
+			><strong class="text-xl ml-4 font-bold text-gray-600 dark:text-gray-300"
+				><span class="text-[#3d81f8]">AT</span>Scan</strong
+			></a
+		>
+	</h2>
+	<hr />
+	{#each navigationMaps as navMap}
+		<nav class="list-nav p-4">
+			<!-- (optionally you can provide a label here) -->
+			<ul>
+				{#each navMap as ni}
+					<li>
+						<a
+							href={ni.url}
+							on:click={() => !ni.external && drawerStore.close()}
+							target={ni.external ? '_blank' : ''}
+						>
+							<span class="flex-auto" class:external={ni.external}>{ni.title}</span>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</nav>
+		<hr />
+	{/each}
+	<div class="p-4">
+		<a
+			class="btn btn-sm hover:variant-soft-primary icon"
+			href={data.config.git}
+			target="_blank"
+			rel="noreferrer"
+		>
+			<i class="fa-brands fa-github" /> <span class="text-sm">v{data.pkg.version}</span>
+		</a>
+	</div>
+</Drawer>
+
 <!-- App Shell -->
 <AppShell>
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
 		<AppBar>
 			<svelte:fragment slot="lead">
+				<div class="flex items-center">
+					<button class="lg:hidden btn btn-sm" on:click={drawerOpen}>
+						<span>
+							<svg viewBox="0 0 100 80" class="fill-token w-4 h-4">
+								<rect width="100" height="20" />
+								<rect y="30" width="100" height="20" />
+								<rect y="60" width="100" height="20" />
+							</svg>
+						</span>
+					</button>
+				</div>
 				<a href="/"
 					><strong class="text-xl ml-4 font-bold text-gray-600 dark:text-gray-300"
 						><span class="text-[#3d81f8]">AT</span>Scan</strong
@@ -78,14 +146,14 @@
 							><span>Federations</span></a
 						>
 					</div>
-					<div class="relative hidden lg:block">
+					<!--div class="relative hidden lg:block">
 						<a
 							href="/clients"
 							class="btn hover:variant-soft-primary"
 							class:bg-primary-active-token={$page.url.pathname === '/clients'}
 							><span>Clients</span></a
 						>
-					</div>
+					</div-->
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
@@ -107,6 +175,7 @@
 					Twitter
 				</a>
 				-->
+				<LightSwitch />
 				<div class="relative hidden lg:block">
 					<a
 						href="/api"
@@ -114,24 +183,23 @@
 						class:bg-primary-active-token={$page.url.pathname === '/api'}><span>API</span></a
 					>
 				</div>
-				<div class="text-sm opacity-50">v{data.pkg.version}</div>
+
 				<a
-					class="btn btn-sm variant-ghost-surface hover:variant-soft-primary external"
+					class="btn btn-sm hover:variant-soft-primary icon hidden lg:block"
+					href={data.config.git}
+					target="_blank"
+					rel="noreferrer"
+				>
+					<i class="fa-brands fa-github" /> <span class="text-sm">v{data.pkg.version}</span>
+				</a>
+				<a
+					class="btn btn-sm variant-ghost-surface hover:variant-soft-primary external hidden lg:block"
 					href="https://atproto.com/"
 					target="_blank"
 					rel="noreferrer"
 				>
 					AT Protocol
 				</a>
-				<a
-					class="btn btn-sm variant-ghost-surface hover:variant-soft-primary icon"
-					href={data.config.git}
-					target="_blank"
-					rel="noreferrer"
-				>
-					<i class="fa-brands fa-github" />
-				</a>
-				<LightSwitch />
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>

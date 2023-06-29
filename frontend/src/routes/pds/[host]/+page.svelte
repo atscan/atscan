@@ -3,6 +3,7 @@
 	import DIDTable from '$lib/components/DIDTable.svelte';
 	import { formatNumber, dateDistance, getFlagEmoji } from '$lib/utils.js';
 	import SourceSection from '$lib/components/SourceSection.svelte';
+	import BasicPage from '$lib/components/BasicPage.svelte';
 
 	export let data;
 
@@ -80,29 +81,23 @@
 	});
 </script>
 
-<svelte:head>
-	<title>{item.host} [PDS] | {data.config.name}</title>
-</svelte:head>
-
-<div class="container mx-auto p-8 space-y-8">
-	<Breadcrumb
-		data={[
-			{ label: 'PDS Instances', link: '/pds' },
-			{
-				label: `<span class="mr-2 badge ${
-					item.env === 'bluesky'
-						? 'bg-ats-fed-bluesky'
-						: item.env === 'sandbox'
-						? 'bg-ats-fed-sandbox'
-						: 'bg-gray-500'
-				} text-white dark:text-black">${item.env}</span> federation`,
-				link: `/pds?federation=${item.env}`
-			}
-		]}
-	/>
-	<h1 class="h1">
-		{item.host}
-	</h1>
+<BasicPage
+	{data}
+	title={item.host}
+	breadcrumb={[
+		{ label: 'PDS Instances', link: '/pds' },
+		{
+			label: `<span class="mr-2 badge ${
+				item.env === 'bluesky'
+					? 'bg-ats-fed-bluesky'
+					: item.env === 'sandbox'
+					? 'bg-ats-fed-sandbox'
+					: 'bg-gray-500'
+			} text-white dark:text-black">${item.env}</span> federation`,
+			link: `/pds?federation=${item.env}`
+		}
+	]}
+>
 	<div class="lg:grid grid-cols-2 gap-4">
 		{#each infoMaps as map}
 			<div class="card bg-white/20 p-4 lg:mb-0 mb-2">
@@ -137,4 +132,4 @@
 	{/if}
 
 	<SourceSection {data} model="pds" />
-</div>
+</BasicPage>

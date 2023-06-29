@@ -6,6 +6,7 @@
 	import { page } from '$app/stores';
 	import { onMount, onDestroy } from 'svelte';
 	import DIDTable from '$lib/components/DIDTable.svelte';
+	import BasicPage from '$lib/components/BasicPage.svelte';
 
 	export let data;
 	const search = writable(data.q?.trim() || '');
@@ -73,12 +74,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>DIDs | {data.config.name}</title>
-</svelte:head>
-
-<div class="container mx-auto p-8 space-y-8">
-	<h1 class="h1">DIDs</h1>
+<BasicPage {data} title="DIDs">
 	<form on:submit|preventDefault={formSubmit} class="flex gap-4">
 		<div class="flex w-full gap-4 items-center justify-center">
 			<div class="grow">
@@ -99,7 +95,7 @@
 					name="slide"
 					bind:checked={onlySandbox}
 					on:change={sandboxToggleHandler}
-					active="bg-ats-sbox dark:bg-ats-sbox"
+					active="bg-ats-fed-sandbox dark:bg-ats-fed-sandbox"
 				/>
 			</div>
 		</div>
@@ -132,4 +128,4 @@
 		</div>
 		<DIDTable {sourceData} {data} />
 	{/if}
-</div>
+</BasicPage>

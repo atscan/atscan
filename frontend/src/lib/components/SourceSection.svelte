@@ -20,11 +20,11 @@
 <div>
 	<p>You can get this data as JSON by making a simple HTTP GET request to our API endpoint:</p>
 	<div class="mt-4 mb-8 flex gap-4 w-full">
-		<div data-clipboard="exampleElement" class="textarea p-2">{url}</div>
-		<button use:clipboard={{ element: 'exampleElement' }} class="btn variant-filled"
+		<div data-clipboard="exampleElement" class="textarea p-2 break-all">{url}</div>
+		<button use:clipboard={{ element: 'exampleElement' }} class="btn btn-sm variant-filled"
 			><i class="fa-regular fa-clipboard mr-2" /> Copy</button
 		>
-		<a href={url} class="btn variant-filled" target="_blank"
+		<a href={url} class="btn btn-sm variant-filled" target="_blank"
 			>Open <i class="ml-2 fa-solid fa-arrow-right" /></a
 		>
 	</div>

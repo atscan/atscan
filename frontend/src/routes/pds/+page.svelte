@@ -5,6 +5,7 @@
 	import { writable } from 'svelte/store';
 	import { page } from '$app/stores';
 	import PDSTable from '$lib/components/PDSTable.svelte';
+	import BasicPage from '$lib/components/BasicPage.svelte';
 
 	export let data;
 
@@ -60,12 +61,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>PDS Instances | {data.config.name}</title>
-</svelte:head>
-
-<div class="container mx-auto p-8 space-y-8">
-	<h1 class="h1">PDS Instances</h1>
+<BasicPage {data} title="PDS Instances">
 	<form on:submit|preventDefault={formSubmit} class="flex gap-4">
 		<input
 			class="input"
@@ -86,4 +82,4 @@
 		{/if}
 	</div>
 	<PDSTable {sourceData} {data} />
-</div>
+</BasicPage>

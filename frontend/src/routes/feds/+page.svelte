@@ -2,6 +2,7 @@
 	import Table from '$lib/components/Table.svelte';
 	import { dataTableHandler, tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import { dateDistance, formatNumber, customTableMapper } from '$lib/utils.js';
+	import BasicPage from '$lib/components/BasicPage.svelte';
 
 	export let data;
 
@@ -41,11 +42,6 @@
 	};
 </script>
 
-<svelte:head>
-	<title>Federations | {data.config.name}</title>
-</svelte:head>
-
-<div class="container mx-auto p-8 space-y-8">
-	<h1 class="h1">Federations</h1>
+<BasicPage {data} title="Federations">
 	<Table source={tableSimple} />
-</div>
+</BasicPage>

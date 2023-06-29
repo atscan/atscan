@@ -1,6 +1,7 @@
 <script>
 	import { customTableMapper } from '$lib/utils.js';
 	import Table from '$lib/components/Table.svelte';
+	import BasicPage from '$lib/components/BasicPage.svelte';
 
 	export let data;
 
@@ -63,12 +64,6 @@
 	};
 </script>
 
-<svelte:head>
-	<title>Clients | {data.config.name}</title>
-</svelte:head>
-
-<div class="container mx-auto p-8 space-y-8">
-	<h1 class="h1">Clients</h1>
-
+<BasicPage {data} title="Clients">
 	<Table source={tableSimple} />
-</div>
+</BasicPage>

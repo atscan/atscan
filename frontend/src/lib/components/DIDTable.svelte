@@ -48,11 +48,11 @@
 			val = row.revs.length;
 		}
 		if (key === 'img') {
-			val = `<div class="text-right w-full"><div class="inline-block"><a href="/${
+			val = `<div class="text-right w-full"><div class="inline-block w-16 h-16"><a href="/${
 				row.did
 			}"><img src="${identicon(
 				row.did
-			)}" class="w-16 h-16 rounded-lg bg-gray-200 dark:bg-gray-800 float-left" /></a></div></div>`;
+			)}" class="w-full h-full bg-white dark:bg-gray-800 float-left" /></a></div></div>`;
 		}
 		if (key === 'did_raw') {
 			val = row.did;

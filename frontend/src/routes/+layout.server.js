@@ -17,6 +17,7 @@ export async function load({ fetch }) {
 	return {
 		config,
 		ecosystem,
-		pkg
+		pkg,
+		basicSpacing: 'p-4 md:p-4 space-y-6 md:space-y-6'
 	};
 }

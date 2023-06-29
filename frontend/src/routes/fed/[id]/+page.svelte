@@ -1,20 +1,13 @@
 <script>
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import SourceSection from '$lib/components/SourceSection.svelte';
+	import BasicPage from '$lib/components/BasicPage.svelte';
 
 	export let data;
 
 	const item = data.item;
 </script>
 
-<svelte:head>
-	<title>{item.name} | {data.config.name}</title>
-</svelte:head>
-
-<div class="container mx-auto p-8 space-y-8">
-	<Breadcrumb data={[{ label: 'Federations', link: '/feds' }]} />
-
-	<h1 class="h1">{item.name}</h1>
-
+<BasicPage {data} title={item.name} breadcrumb={[{ label: 'Federations', link: '/feds' }]}>
 	<SourceSection {data} model="fed" />
-</div>
+</BasicPage>

@@ -3,6 +3,7 @@
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import Table from '$lib/components/Table.svelte';
 	import { customTableMapper } from '$lib/utils.js';
+	import BasicPage from '$lib/components/BasicPage.svelte';
 
 	export let data;
 
@@ -16,8 +17,8 @@
 		{ path: '/pds', desc: 'Get all PDS Instances', example: ['/pds', '/pds?q=gwei.cz'] },
 		{ path: '/pds/[id]', desc: 'Get PDS item', example: ['/pds/bsky.social'] },
 		{ path: '/plc', desc: 'Get all PLC Directories', example: ['/plc'] },
-		{ path: '/feds', desc: 'Get all Federations', example: ['/feds'] },
-		{ path: '/clients', desc: 'Get all Clients', example: ['/clients'] }
+		{ path: '/feds', desc: 'Get all Federations', example: ['/feds'] }
+		//{ path: '/clients', desc: 'Get all Clients', example: ['/clients'] }
 	];
 
 	$: tableSimple = {
@@ -45,13 +46,7 @@
 	};
 </script>
 
-<svelte:head>
-	<title>{data.config.name} API</title>
-</svelte:head>
-
-<div class="container mx-auto p-8 space-y-8">
-	<h1 class="h1">{data.config.name} API</h1>
-
+<BasicPage {data} title={`${data.config.name} API`}>
 	<aside class="alert variant-filled-warning">
 		<!-- Icon -->
 		<i class="fa-solid fa-triangle-exclamation text-4xl" />
@@ -113,4 +108,4 @@ Vary: Accept-Encoding
 			class="underline hover:no-underline">{data.config.status}</a
 		>.
 	</p>
-</div>
+</BasicPage>

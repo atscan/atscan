@@ -5,6 +5,7 @@
 	import SourceSection from '$lib/components/SourceSection.svelte';
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import PDSTable from '$lib/components/PDSTable.svelte';
+	import BasicPage from '$lib/components/BasicPage.svelte';
 
 	export let data;
 
@@ -47,37 +48,35 @@
 	};
 </script>
 
-<svelte:head>
-	<title>{item.did} | {data.config.name}</title>
-</svelte:head>
-
-<div class="container mx-auto p-8 space-y-8">
-	<Breadcrumb
-		data={[
-			{ label: 'DIDs', link: '/dids' },
-			{
-				label: `<span class="mr-2 badge ${
-					item.env ? 'bg-ats-fed-' + item.env : 'bg-gray-500'
-				} text-white dark:text-black">${item.env}</span> federation`,
-				link: `/dids?q=${item.env}`
-			}
-		]}
-	/>
-	<div class="flex gap-8">
-		<div>
+<BasicPage
+	{data}
+	title={item.did}
+	noHeader="true"
+	breadcrumb={[
+		{ label: 'DIDs', link: '/dids' },
+		{
+			label: `<span class="mr-2 badge ${
+				item.env ? 'bg-ats-fed-' + item.env : 'bg-gray-500'
+			} text-white dark:text-black">${item.env}</span> federation`,
+			link: `/dids?q=${item.env}`
+		}
+	]}
+>
+	<div class="flex gap-4 md:gap-6">
+		<div class="w-24 h-24 md:w-40 md:h-40 shrink-0">
 			<img
 				src={identicon(item.did)}
-				class="w-40 h-40 rounded-2xl bg-gray-200 dark:bg-gray-800 float-left"
+				class="w-full h-full bg-white dark:bg-gray-800 float-left"
 				alt={item.did}
 			/>
 		</div>
 		<div class="grow">
 			<h1 class="h1">
-				<span class="opacity-50 font-normal">did:plc:</span><span class="font-semibold opacity-100"
-					>{item.did.replace(/^did:plc:/, '')}</span
+				<span class="opacity-50 font-normal">did:plc:</span><span
+					class="font-semibold opacity-100 break-all">{item.did.replace(/^did:plc:/, '')}</span
 				>
 			</h1>
-			<div class="text-2xl mt-4">
+			<div class="h3 mt-4">
 				{@html handles
 					.map(
 						(h) =>
@@ -97,4 +96,4 @@
 	{/if}
 
 	<SourceSection {data} model="did" />
-</div>
+</BasicPage>
