@@ -1,6 +1,7 @@
 import { ATScan } from "./lib/atscan.js";
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
+import { minidenticon } from "npm:minidenticons@4.2.0";
 
 const ats = new ATScan();
 await ats.init();
@@ -41,6 +42,10 @@ function findDIDFed(item) {
 }
 
 router
+  .get("/", (ctx) => {
+    ctx.response.body = "ATScan API";
+    perf(ctx);
+  })
   .get("/pds", async (ctx) => {
     const out = [];
     for (const item of (await ats.db.pds.find({}).toArray())) {
@@ -54,6 +59,22 @@ router
       out.push(item);
     }
     ctx.response.body = out; //.filter((i) => i.fed);
+    perf(ctx);
+  })
+  .get("/pds/:host", async (ctx) => {
+    let host = ctx.params.host;
+    let https = true;
+    if (host.startsWith("localhost:")) {
+      https = false;
+    }
+    const q = { url: `http${https ? "s" : ""}://${host}` };
+    const item = await ats.db.pds.findOne(q);
+    if (!item) {
+      return ctx.response.code = 404;
+    }
+    item.host = item.url.replace(/^https?:\/\//, "");
+    item.fed = findPDSFed(item);
+    ctx.response.body = item;
     perf(ctx);
   })
   .get("/dids", async (ctx) => {
@@ -163,34 +184,25 @@ router
     ctx.response.body = out;
     perf(ctx);
   })
+  .get("/:id.svg", async (ctx) => {
+    if (!ctx.params.id.startsWith("did:")) {
+      return ctx.status = 404;
+    }
+    ctx.response.body = minidenticon(ctx.params.id);
+    ctx.response.headers.set("content-type", "image/svg+xml");
+    perf(ctx);
+  })
   .get("/:id", async (ctx) => {
     if (!ctx.params.id.match(/^did\:/)) {
       return ctx.status = 404;
     }
     const did = ctx.params.id;
     const item = await ats.db.did.findOne({ did });
+    if (!item) {
+      return ctx.status = 404;
+    }
     item.fed = findDIDFed(item);
     ctx.response.body = item;
-    perf(ctx);
-  })
-  .get("/pds/:host", async (ctx) => {
-    let host = ctx.params.host;
-    let https = true;
-    if (host.startsWith("localhost:")) {
-      https = false;
-    }
-    const q = { url: `http${https ? "s" : ""}://${host}` };
-    const item = await ats.db.pds.findOne(q);
-    if (!item) {
-      return ctx.response.code = 404;
-    }
-    item.host = item.url.replace(/^https?:\/\//, "");
-    item.fed = findPDSFed(item);
-    ctx.response.body = item;
-    perf(ctx);
-  })
-  .get("/", (ctx) => {
-    ctx.response.body = "ATScan API";
     perf(ctx);
   });
 

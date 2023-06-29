@@ -14,10 +14,16 @@
 			example: ['/dids', '/dids?q=pds:bsky.social', '/dids?q=.cz$']
 		},
 		{ path: '/[did]', desc: 'Get DID item', example: ['/did:plc:524tuhdhh3m7li5gycdn6boe'] },
+		{
+			path: '/[did].svg',
+			desc: 'Get Identicon SVG for DID (<a href="https://github.com/laurentpayot/minidenticons" class="anchor" target="_blank">minidenticons</a>)',
+			example: ['/did:plc:524tuhdhh3m7li5gycdn6boe.svg']
+		},
 		{ path: '/pds', desc: 'Get all PDS Instances', example: ['/pds', '/pds?q=gwei.cz'] },
 		{ path: '/pds/[id]', desc: 'Get PDS item', example: ['/pds/bsky.social'] },
 		{ path: '/plc', desc: 'Get all PLC Directories', example: ['/plc'] },
 		{ path: '/feds', desc: 'Get all Federations', example: ['/feds'] }
+
 		//{ path: '/clients', desc: 'Get all Clients', example: ['/clients'] }
 	];
 
@@ -36,7 +42,12 @@
 						val = [val];
 					}
 					val = val
-						.map((v) => `<code class="code ${key === 'path' ? 'text-lg' : ''}">${v}</code>`)
+						.map(
+							(v) =>
+								`<code class="code ${key === 'path' ? 'text-lg' : ''}">` + (key === 'example' ? `<a href="${
+									data.config.api
+								}${v}" target="_blank">${v}</a>` : v) + `</code>`
+						)
 						.join('<br />');
 				}
 				return val;
