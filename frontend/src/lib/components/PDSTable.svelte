@@ -17,7 +17,6 @@
 		}
 		if (key === 'fed') {
 			let arr = [];
-			console.log(val);
 			const fed = data.ecosystem.data.federations.find((f) => f.id === val);
 			if (fed) {
 				arr.push(

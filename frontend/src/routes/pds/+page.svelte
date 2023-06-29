@@ -36,7 +36,7 @@
 		for (const t of tokens) {
 			const cmatch = t.match(/^country:([\w]{2})$/);
 			if (cmatch) {
-				console.log(cmatch[1]);
+				//console.log(cmatch[1]);
 				base = base.filter((b) => {
 					if (!b.ip) {
 						return false;
