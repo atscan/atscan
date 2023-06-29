@@ -9,7 +9,7 @@ export async function load({ params, fetch, parent }) {
 	}
 
 	const item = await itemRes.json();
-	const pdsHost = item.pds[0].replace(/^https?:\/\//, '');
+	const pdsHost = item.pds[0]?.replace(/^https?:\/\//, '');
 	const pdsRes = pdsHost ? await fetch(`${config.api}/pds/${pdsHost}`) : null;
 	return {
 		item,

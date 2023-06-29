@@ -8,7 +8,7 @@ export async function load({ fetch }) {
 		web: 'https://atscan.net',
 		git: 'https://github.com/atscan/atscan',
 		status: 'https://status.gwei.cz/status/atscan',
-		ecosystem: 'https://ecosystem.atscan.net/index.json'
+		ecosystem: 'https://mirror.ecosystem.atscan.net/index.json'
 	};
 
 	const ecosystemRes = await fetch(config.ecosystem);

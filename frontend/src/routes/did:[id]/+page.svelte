@@ -10,9 +10,8 @@
 	export let data;
 
 	const item = data.item;
-	const handles = item.revs[item.revs.length - 1].operation.alsoKnownAs.map((h) =>
-		h.replace(/^at:\/\//, '')
-	);
+	const asa = item.revs[item.revs.length - 1].operation?.alsoKnownAs;
+	const handles = asa ? asa.map((h) => h.replace(/^at:\/\//, '')) : [];
 
 	function tableMapperValuesLocal(source, keys) {
 		let i = 0;
@@ -26,7 +25,7 @@
 							val = String('#' + i);
 						}
 						if (key === 'handle') {
-							val = row.operation.alsoKnownAs.map((a) => a.replace(/^at:\/\//, '@')).join(', ');
+							val = row.operation.alsoKnownAs?.map((a) => a.replace(/^at:\/\//, '@')).join(', ');
 						}
 						if (key === 'createdAt') {
 							val = `<span title="${val}" alt="${val}">${dateDistance(val)}</span>`;
@@ -46,22 +45,19 @@
 		body: tableMapperValuesLocal(sourceData, ['num', 'handle', 'cid', 'createdAt']),
 		meta: tableMapperValues(sourceData, ['cid'])
 	};
+
+	const breadcrumb = [{ label: 'DIDs', link: '/dids' }];
+	if (item.fed) {
+		breadcrumb.push({
+			label: `<span class="mr-2 badge ${
+				item.fed ? 'bg-ats-fed-' + item.fed : 'bg-gray-500'
+			} text-white dark:text-black">${item.fed}</span> federation`,
+			link: `/dids?q=fed:${item.fed}`
+		});
+	}
 </script>
 
-<BasicPage
-	{data}
-	title={item.did}
-	noHeader="true"
-	breadcrumb={[
-		{ label: 'DIDs', link: '/dids' },
-		{
-			label: `<span class="mr-2 badge ${
-				item.env ? 'bg-ats-fed-' + item.env : 'bg-gray-500'
-			} text-white dark:text-black">${item.env}</span> federation`,
-			link: `/dids?q=${item.env}`
-		}
-	]}
->
+<BasicPage {data} title={item.did} noHeader="true" {breadcrumb}>
 	<div class="flex gap-4 md:gap-6">
 		<div class="w-24 h-24 md:w-40 md:h-40 shrink-0">
 			<img

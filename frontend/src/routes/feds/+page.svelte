@@ -16,7 +16,14 @@
 		if (key === 'dids') {
 			const host = row.plc.replace(/^https?:\/\//, '');
 			const plc = data.plc?.find((p) => p.host === host) || { didsCount: 0 };
-			val = `<a href="/dids?q=plc:${host}" class="anchor">${formatNumber(plc.didsCount)}</a>`;
+			val = `<a href="/dids?q=fed:${row.id}" class="anchor">${formatNumber(plc.didsCount)}</a>`;
+		}
+		if (key === 'pds') {
+			const host = row.plc.replace(/^https?:\/\//, '');
+			const plc = data.plc?.find((p) => p.host === host) || { didsCount: 0 };
+			val = `<a href="/pds?q=fed:${row.id}" class="anchor">${
+				row.pds ? 1 : formatNumber(plc.pdsCount)
+			}</a>`;
 		}
 		if (key === 'plc') {
 			const host = row.plc.replace(/^https?:\/\//, '');
@@ -36,8 +43,12 @@
 	const sourceData = data.ecosystem.data.federations;
 	const tableSimple = {
 		// A list of heading labels.
-		head: ['Federation', 'Name', 'DIDs', 'PLC Directory', 'PLC Last mod'],
-		body: customTableMapper(sourceData, ['world', 'name', 'dids', 'plc', 'lastUpdate'], tableMap),
+		head: ['Federation', 'Name', 'PDS', 'DIDs', 'PLC Directory', 'PLC Last mod'],
+		body: customTableMapper(
+			sourceData,
+			['world', 'name', 'pds', 'dids', 'plc', 'lastUpdate'],
+			tableMap
+		),
 		meta: customTableMapper(sourceData, ['id', 'url_raw'], tableMap)
 	};
 </script>

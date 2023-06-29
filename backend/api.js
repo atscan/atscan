@@ -19,27 +19,47 @@ function perf(ctx) {
 
 const router = new Router();
 
+function findPDSFed(item) {
+  const ff = ats.ecosystem.data.federations.find((fed) => {
+    if (fed.pds) {
+      return fed.pds === item.url;
+    } else {
+      return item.plcs.includes(fed.plc);
+    }
+  });
+  return ff ? ff.id : null;
+}
+function findDIDFed(item) {
+  const ff = ats.ecosystem.data.federations.find((fed) => {
+    if (fed.pds) {
+      return item.pds.includes(fed.pds) && item.src === fed.plc;
+    } else {
+      return item.src === fed.plc;
+    }
+  });
+  return ff ? ff.id : null;
+}
+
 router
   .get("/pds", async (ctx) => {
     const out = [];
     for (const item of (await ats.db.pds.find({}).toArray())) {
+      if (!item.url) {
+        console.error("PDS without url? ", item);
+        continue;
+      }
       item.host = item.url.replace(/^https?:\/\//, "");
-      item.env = (ats.BSKY_OFFICIAL_PDS.includes(item.url) &&
-          item.plcs.includes("https://plc.directory"))
-        ? "bluesky"
-        : (item.plcs.includes("https://plc.bsky-sandbox.dev")
-          ? "sandbox"
-          : null);
+      item.fed = findPDSFed(item);
       //item.didsCount = await ats.db.did.countDocuments({ 'pds': { $in: [ item.url ] }})
       out.push(item);
     }
-    ctx.response.body = out.filter((i) => i.env);
+    ctx.response.body = out; //.filter((i) => i.fed);
     perf(ctx);
   })
   .get("/dids", async (ctx) => {
     const out = [];
     const query = { $and: [{}] };
-    let sort = { time: -1 };
+    let sort = { lastMod: -1 };
 
     let q = ctx.request.url.searchParams.get("q")?.replace(/^@/, "");
     if (q) {
@@ -92,6 +112,7 @@ router
         of (await ats.db.did.find(query).sort(sort).limit(limit).toArray())
     ) {
       did.srcHost = did.src.replace(/^https?:\/\//, "");
+      did.fed = findDIDFed(did);
       out.push(did);
     }
 
@@ -132,6 +153,9 @@ router
     for (const plc of ats.ecosystem.data["plc-directories"]) {
       plc.host = plc.url.replace(/^https?:\/\//, "");
       plc.didsCount = await ats.db.did.countDocuments({ src: plc.url });
+      plc.pdsCount = await ats.db.pds.countDocuments({
+        plcs: { $in: [plc.url] },
+      });
       plc.lastUpdate =
         (await ats.db.meta.findOne({ key: `lastUpdate:${plc.url}` })).value;
       out.push(plc);
@@ -145,11 +169,7 @@ router
     }
     const did = ctx.params.id;
     const item = await ats.db.did.findOne({ did });
-    item.env = (item.src === "https://plc.directory")
-      ? "bluesky"
-      : (item.src === "https://plc.bsky-sandbox.dev")
-      ? "sandbox"
-      : null;
+    item.fed = findDIDFed(item);
     ctx.response.body = item;
     perf(ctx);
   })
@@ -160,7 +180,6 @@ router
       https = false;
     }
     const q = { url: `http${https ? "s" : ""}://${host}` };
-    console.log(host, q);
     const item = await ats.db.pds.findOne(q);
     if (!item) {
       return ctx.response.code = 404;

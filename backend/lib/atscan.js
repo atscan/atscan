@@ -49,6 +49,7 @@ export class ATScan {
         src: plc.url,
         revs: [data],
         time: new Date().toISOString(),
+        lastMod: data.createdAt,
         pds: pdsUrl ? [pdsUrl] : [],
       };
       let didRev = 0;
@@ -77,6 +78,7 @@ export class ATScan {
               time: new Date().toISOString(),
               revs: found.revs,
               pds: found.pds,
+              lastMod: found.revs[found.revs.length - 1].createdAt,
             },
           });
         }
@@ -88,34 +90,36 @@ export class ATScan {
         );
         await this.db.did.insertOne(obj);
       }
-      const pdsFound = await this.db.pds.findOne({ url: pdsUrl });
-      const didId = [data.did, didRev].join("@");
-      if (pdsFound) {
-        if (!pdsFound.plcs.includes(plc.url)) {
-          pdsFound.plcs.push(plcUrl);
-          console.log(
-            `${
-              (new Date()).toISOString()
-            } PDS [${pdsUrl}]: Adding new PLC: ${plc.url}`,
-          );
-          await this.db.pds.updateOne({ url: pdsUrl }, {
-            $set: {
-              plcs: pdsFound.plcs,
-            },
+      if (pdsUrl) {
+        const pdsFound = await this.db.pds.findOne({ url: pdsUrl });
+        const didId = [data.did, didRev].join("@");
+        if (pdsFound) {
+          if (!pdsFound.plcs.includes(plc.url)) {
+            pdsFound.plcs.push(plcUrl);
+            console.log(
+              `${
+                (new Date()).toISOString()
+              } PDS [${pdsUrl}]: Adding new PLC: ${plc.url}`,
+            );
+            await this.db.pds.updateOne({ url: pdsUrl }, {
+              $set: {
+                plcs: pdsFound.plcs,
+              },
+            });
+          }
+        } else {
+          await this.db.pds.insertOne({
+            url: pdsUrl,
+            plcs: [plc.url],
+            time: new Date().toISOString(),
           });
         }
-      } else {
-        await this.db.pds.insertOne({
-          url: pdsUrl,
-          plcs: [plc.url],
-          time: new Date().toISOString(),
+        // update PDS stats
+        const didsCount = await this.db.did.countDocuments({
+          "pds": { $in: [pdsUrl] },
         });
+        await this.db.pds.updateOne({ url: pdsUrl }, { $set: { didsCount } });
       }
-      // update PDS stats
-      const didsCount = await this.db.did.countDocuments({
-        "pds": { $in: [pdsUrl] },
-      });
-      await this.db.pds.updateOne({ url: pdsUrl }, { $set: { didsCount } });
     }
 
     const key = `lastUpdate:${plc.url}`;

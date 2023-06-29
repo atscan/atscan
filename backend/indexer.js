@@ -4,15 +4,13 @@ import whoiser from "npm:whoiser";
 const wait = 60 * 15;
 
 async function index(ats) {
-  const arr = await ats.db.pds.find().toArray();
-  for (const pds of arr) {
+  for (const pds of await ats.db.pds.find().toArray()) {
     const didsCount = await ats.db.did.countDocuments({
       "pds": { $in: [pds.url] },
     });
     console.log(`${pds.url}: ${didsCount}`);
     await ats.db.pds.updateOne({ url: pds.url }, { $set: { didsCount } });
   }
-
   //console.log(await whoiser("dev.otaso-sky.blue"));
 }
 
@@ -33,4 +31,14 @@ if (Deno.args[0] === "daemon") {
   const ats = new ATScan({ debug: true });
   await ats.init();
   await index(ats);
+
+  for (
+    const did of await ats.db.did.find({ lastMod: { $exists: false } })
+      .toArray()
+  ) {
+    await ats.db.did.updateOne({ _id: did._id }, {
+      $set: { lastMod: did.revs[did.revs.length - 1].createdAt },
+    });
+    console.log(`${did} updated ${did.revs[did.revs.length - 1].createdAt}`);
+  }
 }

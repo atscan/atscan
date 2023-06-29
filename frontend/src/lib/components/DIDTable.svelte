@@ -19,19 +19,21 @@
 		}
 		if (key === 'did') {
 			const did = val;
-			const fedId = row.src === 'https://plc.directory' ? 'bluesky' : 'sandbox';
-			const fed = data.ecosystem.data.federations.find((f) => f.id === fedId);
+			const fed = row.fed ? data.ecosystem.data.federations.find((f) => f.id === row.fed) : null;
 			val = `<div class="flex gap-6">`;
 			val += `    <div>`;
 			val += `        <div class="text-lg inline-block"><a href="/${did}" class=""><span class="opacity-50">did:plc:</span><span class="font-semibold opacity-100">${did.replace(
 				/^did:plc:/,
 				''
 			)}</span></a></div>`;
-			const handles = row.revs[row.revs.length - 1].operation.alsoKnownAs
-				.filter((h) => !h.match(/at:\/\/data:x\//))
-				.map((h) => h.replace(/^at:\/\//, ''));
+			const asa = row.revs[row.revs.length - 1].operation?.alsoKnownAs;
+			const handles = asa
+				? asa.filter((h) => !h.match(/at:\/\/data:x\//)).map((h) => h.replace(/^at:\/\//, ''))
+				: [];
 			val += `        <div class="mt-1.5">`;
-			val += `            <span class="mr-2 badge text-xs variant-filled bg-ats-fed-${fed.id} dark:bg-ats-fed-${fed.id} opacity-70 text-white dark:text-black">${fed.id}</span>`;
+			if (fed) {
+				val += `            <span class="mr-2 badge text-xs variant-filled bg-ats-fed-${fed.id} dark:bg-ats-fed-${fed.id} opacity-70 text-white dark:text-black">${fed.id}</span>`;
+			}
 			val += `            <span>${handles
 				.map(
 					(h) => `<a href="https://bsky.app/profile/${h}" target="_blank" class="anchor">@${h}</a>`
@@ -41,7 +43,7 @@
 			val += `    </div>`;
 			val += '</div>';
 		}
-		if (key === 'time') {
+		if (key === 'lastMod') {
 			val = dateDistance(val);
 		}
 		if (key === 'deep') {
@@ -67,7 +69,7 @@
 		head: ['', 'DID', '#', 'PLC', 'PDS', 'Last mod'],
 		body: customTableMapper(
 			sourceData || [],
-			['img', 'did', 'deep', 'srcHost', 'pds', 'time'],
+			['img', 'did', 'deep', 'srcHost', 'pds', 'lastMod'],
 			tableMap
 		),
 		meta: customTableMapper(sourceData || [], ['did_raw', 'url'], tableMap)

@@ -15,8 +15,9 @@
 				val += '<br/>(' + row.inspect?.current.data?.availableUserDomains.join(', ') + ')';
 			}
 		}
-		if (key === 'env') {
+		if (key === 'fed') {
 			let arr = [];
+			console.log(val);
 			const fed = data.ecosystem.data.federations.find((f) => f.id === val);
 			if (fed) {
 				arr.push(
@@ -87,7 +88,7 @@
 		],
 		body: customTableMapper(
 			sourceData,
-			['env', 'host', 'didsCount', 'location', 'plcs', 'ms', 'lastOnline'],
+			['fed', 'host', 'didsCount', 'location', 'plcs', 'ms', 'lastOnline'],
 			tableMap
 		),
 		meta: customTableMapper(sourceData, ['host_raw', 'url'], tableMap)
