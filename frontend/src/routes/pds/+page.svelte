@@ -35,6 +35,7 @@
 		let str = [];
 		for (const t of tokens) {
 			const cmatch = t.match(/^country:([\w]{2})$/);
+			const fmatch = t.match(/^fed:(\w+)$/);
 			if (cmatch) {
 				//console.log(cmatch[1]);
 				base = base.filter((b) => {
@@ -43,6 +44,8 @@
 					}
 					return b.ip.country.toLowerCase() === cmatch[1].toLowerCase();
 				});
+			} else if (fmatch) {
+				base = base.filter((b) => b.fed?.toLowerCase() === fmatch[1].toLowerCase());
 			} else {
 				str.push(t);
 			}
