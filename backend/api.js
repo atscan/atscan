@@ -36,18 +36,6 @@ router
     ctx.response.body = out.filter((i) => i.env);
     perf(ctx);
   })
-  .get("/plc", async (ctx) => {
-    const out = [];
-    for (const plc of ats.defaultPLC) {
-      plc.host = plc.url.replace(/^https?:\/\//, "");
-      plc.didsCount = await ats.db.did.countDocuments({ src: plc.url });
-      plc.lastUpdate =
-        (await ats.db.meta.findOne({ key: `lastUpdate:${plc.url}` })).value;
-      out.push(plc);
-    }
-    ctx.response.body = out;
-    perf(ctx);
-  })
   .get("/dids", async (ctx) => {
     const out = [];
     const query = { $and: [{}] };
@@ -61,14 +49,18 @@ router
       for (const t of tokens) {
         let plcMatch = t.match(/^plc:(https:\/\/|)(.+)$/);
         let pdsMatch = t.match(/^pds:(https:\/\/|)(.+)$/);
-        let envMatch = t.match(/^env:(.+)$/);
+        let fedMatch = t.match(/^fed:(.+)$/);
         if (plcMatch) {
           query.$and.push({ src: "https://" + plcMatch[2] });
         } else if (pdsMatch) {
           query.$and.push({ pds: { $in: ["https://" + pdsMatch[2]] } });
-        } else if (envMatch) {
-          const env = ats.defaultPLC.find((p) => p.code === envMatch[1]);
-          query.$and.push({ src: env.url });
+        } else if (fedMatch) {
+          const fed = ats.ecosystem.data.federations.find((f) =>
+            f.id === fedMatch[1]
+          );
+          if (fed) {
+            query.$and.push({ src: fed.plc });
+          }
         } else {
           textArr.push(t);
         }
@@ -133,6 +125,18 @@ router
       return ctx.response.code = 404;
     }
     ctx.response.body = item;
+    perf(ctx);
+  })
+  .get("/plc", async (ctx) => {
+    const out = [];
+    for (const plc of ats.ecosystem.data["plc-directories"]) {
+      plc.host = plc.url.replace(/^https?:\/\//, "");
+      plc.didsCount = await ats.db.did.countDocuments({ src: plc.url });
+      plc.lastUpdate =
+        (await ats.db.meta.findOne({ key: `lastUpdate:${plc.url}` })).value;
+      out.push(plc);
+    }
+    ctx.response.body = out;
     perf(ctx);
   })
   .get("/:id", async (ctx) => {

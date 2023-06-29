@@ -11,9 +11,9 @@ export async function load({ fetch, url, parent }) {
 	const totalCount = json.count;
 	const did = _.orderBy(json.items, ['time'], ['desc']);
 	let onlySandbox = false;
-	if (q?.match(/env:sbox/)) {
+	if (q?.match(/fed:sandbox/)) {
 		onlySandbox = true;
-		q = q.replace('env:sbox', '').trim();
+		q = q.replace('fed:sandbox', '').trim();
 	}
 
 	return {

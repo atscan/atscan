@@ -30,11 +30,11 @@
 
 	function gotoNewTableState() {
 		let q = $search || '';
-		if (onlySandbox && !q.match(/env:sbox/)) {
-			q += ' env:sbox';
+		if (onlySandbox && !q.match(/fed:sandbox/)) {
+			q += ' fed:sandbox';
 			q = q.trim();
 		} else {
-			q = q.replace(/env:sbox/, '');
+			q = q.replace(/fed:sandbox/, '');
 		}
 		q = q.trim();
 		const path = '/dids' + (q !== '' ? `?q=${q}` : '');

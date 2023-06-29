@@ -6,13 +6,12 @@ import "https://deno.land/std@0.192.0/dotenv/load.ts";
 const BSKY_OFFICIAL_PDS = [
   "https://bsky.social",
 ];
-const ATSCAN_ECOSYSTEM = "https://ecosystem.atscan.net/index.json";
+const ATSCAN_ECOSYSTEM = "https://mirror.ecosystem.atscan.net/index.json";
 
 export class ATScan {
   constructor(opts = {}) {
     this.verbose = opts.verbose;
     this.debug = opts.debug;
-    this.defaultPLC = parse(Deno.readTextFileSync("./spec/plc.yaml"));
     this.BSKY_OFFICIAL_PDS = BSKY_OFFICIAL_PDS;
   }
 

@@ -1,7 +1,7 @@
 import { ATScan } from "./lib/atscan.js";
 
 async function crawl(ats) {
-  for (const plc of ats.defaultPLC) {
+  for (const plc of ats.ecosystem.data['plc-directories']) {
     let start = 0;
     if (Deno.args[0] !== "init") {
       const item = await ats.db.meta.findOne({ key: `lastUpdate:${plc.url}` });

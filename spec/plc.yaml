@@ -1,9 +1,0 @@
-- url: https://plc.directory
-  code: bsky
-  name: Bluesky
-  color: 'bg-ats-bsky'
-
-- url: https://plc.bsky-sandbox.dev
-  code: sbox
-  name: Sandbox
-  color: 'bg-ats-sbox'
