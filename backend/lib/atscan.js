@@ -4,16 +4,12 @@ import { MongoClient } from "npm:mongodb";
 import "https://deno.land/std@0.192.0/dotenv/load.ts";
 import {InfluxDB} from 'npm:@influxdata/influxdb-client'
 
-const BSKY_OFFICIAL_PDS = [
-  "https://bsky.social",
-];
 const ATSCAN_ECOSYSTEM = "https://mirror.ecosystem.atscan.net/index.json";
 
 export class ATScan {
   constructor(opts = {}) {
     this.verbose = opts.verbose;
     this.debug = opts.debug;
-    this.BSKY_OFFICIAL_PDS = BSKY_OFFICIAL_PDS;
   }
 
   async init() {
