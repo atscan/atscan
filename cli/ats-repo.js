@@ -1,5 +1,6 @@
 
 import { Command } from "https://deno.land/x/cliffy@v0.25.7/command/mod.ts";
+import jsonata from "npm:jsonata"
 import { inspect, read } from "../backend/lib/car.js";
 
 await new Command()
@@ -16,9 +17,10 @@ await new Command()
     })
     .command("remote-car-inspect,rci", "Inspect remote CAR file")
     .option('--checkout,-c', "Read checkout data")
+    .option('--query,-q <query>', "Query result with JSONata")
     .option('--debug', "Debug")
     .arguments("<did:string>", 'DID')
-    .action(async ({ debug, checkout }, did) => {
+    .action(async ({ debug, checkout, query }, did) => {
         // get did info
         const didRes = await fetch('https://api.atscan.net/'+did)
         if (!didRes.ok) {
@@ -41,8 +43,13 @@ await new Command()
         } else {
             out = await inspect(data, did, signingKey)
         }
+
+        if (query) {
+            out = await jsonata(query).evaluate(out)
+        }
         console.log(JSON.stringify(out, null, 2))
     })
     .example("Inspect remote CAR", "ats r rci did:plc:naichbdds7i7cwbzwzvjraxm")
     .example("Get all current data", "ats r rci did:plc:naichbdds7i7cwbzwzvjraxm -c")
+    .example("Get feed generators", "ats r rci did:plc:524tuhdhh3m7li5gycdn6boe -c -q 'contents.`app.bsky.feed.generator`'")
     .parse(Deno.args)
