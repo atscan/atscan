@@ -1,7 +1,13 @@
 <script>
 	import Table from '$lib/components/Table.svelte';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
-	import { dateDistance, identicon, formatNumber, customTableMapper } from '$lib/utils.js';
+	import {
+		dateDistance,
+		identicon,
+		formatNumber,
+		customTableMapper,
+		getPDSStatus
+	} from '$lib/utils.js';
 	export let sourceData;
 	export let data;
 
@@ -23,7 +29,7 @@
 			const fed = data.ecosystem.data.federations.find((f) => f.id === val);
 			if (fed) {
 				arr.push(
-					`<span class="badge variant-filled bg-ats-fed-${fed.id} dark:bg-ats-fed-${fed.id} opacity-70 text-white dark:text-black">${fed.id}</span>`
+					`<span class="mt-0.5 badge variant-filled bg-ats-fed-${fed.id} dark:bg-ats-fed-${fed.id} opacity-70 text-white dark:text-black">${fed.id}</span>`
 				);
 			}
 			val = arr.reverse().join(' ');
@@ -76,11 +82,19 @@
 		if (key === 'url') {
 			val = `/pds/${row.host}`;
 		}
+		if (key === 'status') {
+			const { color, ico, text } = getPDSStatus(row);
+			val = `<i class="mt-1.5 mr-1.5 ${
+				ico || 'fa-solid fa-circle'
+			} ${color}" alt="${text}" title="${text}"></i>`;
+			//(row.inspect.current?.ms ? `<span class="text-xs opacity-50">${row.inspect.current?.ms}ms</span>` : '')
+		}
 		return val;
 	}
 	$: tableSimple = {
 		head: [
 			'Federation',
+			'',
 			'Host',
 			'DIDs',
 			'Location',
@@ -90,7 +104,7 @@
 		],
 		body: customTableMapper(
 			sourceData,
-			['fed', 'host', 'didsCount', 'location', 'plcs', 'ms', 'lastOnline'],
+			['fed', 'status', 'host', 'didsCount', 'location', 'plcs', 'ms', 'lastOnline'],
 			tableMap
 		),
 		meta: customTableMapper(sourceData, ['host_raw', 'url'], tableMap)

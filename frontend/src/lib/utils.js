@@ -58,3 +58,13 @@ export function isDarkMode(document) {
 	const elemHtmlClasses = document.documentElement.classList;
 	return elemHtmlClasses.contains('dark');
 }
+
+export function getPDSStatus(row) {
+	const [color, ico, text] = !row.inspect
+		? ['text-gray-500', null, 'Status unknown']
+		: row.inspect?.current.err
+		? ['text-red-500', null, 'Offline']
+		: ['text-green-500', null, 'Online'];
+
+	return { color, ico, text };
+}

@@ -1,7 +1,13 @@
 <script>
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import DIDTable from '$lib/components/DIDTable.svelte';
-	import { formatNumber, dateDistance, getFlagEmoji, isDarkMode } from '$lib/utils.js';
+	import {
+		formatNumber,
+		dateDistance,
+		getFlagEmoji,
+		isDarkMode,
+		getPDSStatus
+	} from '$lib/utils.js';
 	import SourceSection from '$lib/components/SourceSection.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
 	import Chart from '$lib/components/Chart.svelte';
@@ -10,6 +16,7 @@
 	export let data;
 
 	const item = data.item;
+	const status = getPDSStatus(item);
 
 	const infoMaps = [];
 	infoMaps.push({
@@ -90,60 +97,63 @@
 		});
 	}
 
-	$: chartResponseTimes = {};
-	let darkMode = null;
-	onMount(() => {
-		darkMode = isDarkMode(document);
-		chartResponseTimes = {
-			animationDuration: 500,
-			title: {
-				text: `${item.host} response times in last 24 hours`
-			},
-			tooltip: {
-				trigger: 'axis',
-				formatter: '{b}: {c} ms'
-			},
-			legend: {
-				data: [chartHost]
-			},
-			grid: {
-				left: '3%',
-				right: '4%',
-				bottom: '3%',
-				containLabel: true
-			},
-			toolbox: {
-				feature: {
-					saveAsImage: {}
-				}
-			},
-			xAxis: {
-				type: 'category',
-				boundaryGap: false,
-				data: item.responseTimesDay?.map((r) => r._time) || []
-			},
-			yAxis: {
-				type: 'value',
-				axisLabel: {
-					formatter: '{value} ms'
-				}
-			},
-			series: [
-				{
-					name: chartHost,
-					type: 'line',
-					stack: 'ms',
-					data: item.responseTimesDay?.map((r) => r._value) || []
-				}
-			]
-		};
-	});
-	console.log(darkMode);
-
-	const chartHost = 'Central Europe (CZ)';
+	$: chartResponseTimes = {
+		animationDuration: 500,
+		title: {
+			text: `${item.host} response times in last 24 hours`
+		},
+		tooltip: {
+			trigger: 'axis',
+			formatter: '{b}: {c} ms'
+		},
+		legend: {
+			data: [chartHost]
+		},
+		grid: {
+			left: '2%',
+			right: '2%',
+			bottom: '3%',
+			containLabel: true
+		},
+		toolbox: {
+			feature: {
+				saveAsImage: {}
+			}
+		},
+		xAxis: {
+			type: 'category',
+			boundaryGap: false,
+			data: item.responseTimesDay?.map((r) => r._time) || []
+		},
+		yAxis: {
+			type: 'value',
+			axisLabel: {
+				formatter: '{value} ms'
+			}
+		},
+		series: [
+			{
+				name: chartHost,
+				type: 'line',
+				stack: 'ms',
+				data: item.responseTimesDay?.map((r) => r._value) || []
+			}
+		]
+	};
+	const chartHost = 'Central Europe (Prague, CZ)';
 </script>
 
-<BasicPage {data} title={item.host} {breadcrumb}>
+<BasicPage {data} title={item.host} {breadcrumb} noHeader="true">
+	<h1 class="h1">
+		{item.host}
+		<i
+			class="text-base md:text-xl align-[0.2em] md:align-[0.3em] mt-1.5 mr-1.5 {status.ico ||
+				'fa-solid fa-circle'} {status.color}"
+			alt={status.text}
+			title={status.text}
+		/>
+	</h1>
+
 	<div class="lg:grid grid-cols-2 gap-4">
 		{#each infoMaps as map}
 			<div class="card bg-white/20 p-4 lg:mb-0 mb-2">
@@ -163,9 +173,11 @@
 	</div>
 
 	<h2 class="h2">Response times</h2>
-	<div class="w-full h-64">
-		<Chart options={chartResponseTimes} />
-	</div>
+	{#if chartResponseTimes}
+		<div class="w-full h-64">
+			<Chart options={chartResponseTimes} />
+		</div>
+	{/if}
 
 	<h2 class="h2">
 		<a href="/dids?q=pds:{item.host}">DIDs</a>
