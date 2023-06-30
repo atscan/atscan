@@ -40,7 +40,7 @@ module.exports = {
     //args : "daemon",
     interpreter: "deno",
     interpreterArgs: "run --unstable --allow-net --allow-read --allow-env --allow-sys",
-    watch: true,
+    //watch: true,
     ignore_watch: [ 'frontend' ],
   }],
 };

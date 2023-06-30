@@ -20,8 +20,8 @@ index-daemon:
 api-ws:
 	deno run --unstable --allow-net --allow-read --allow-env --allow-sys ./backend/api-ws.js
 
-did-crawler:
-	deno run --unstable --allow-net --allow-read --allow-env --allow-sys ./backend/did-crawler.js
+repo-crawler:
+	deno run --unstable --allow-net --allow-read --allow-write --allow-env --allow-sys ./backend/repo-crawler.js
 
 fe-rebuild:
 	cd frontend && npm run build && pm2 restart atscan-fe
@@ -29,8 +29,12 @@ fe-rebuild:
 be-restart:
 	pm2 restart atscan-api atscan-indexer atscan-pds-crawler atscan-plc-crawler
 
+install:
+	deno install --unstable -A -f -n ats ./cli/ats.js
+	deno install --unstable -A -f -n ats-repo ./cli/ats-repo.js
+
 format:
-	cd backend && deno fmt
+	cd backend && deno fmt **.js
 	cd frontend && npm run format
 
 fmt: format

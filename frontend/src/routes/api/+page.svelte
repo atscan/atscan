@@ -44,9 +44,11 @@
 					val = val
 						.map(
 							(v) =>
-								`<code class="code ${key === 'path' ? 'text-lg' : ''}">` + (key === 'example' ? `<a href="${
-									data.config.api
-								}${v}" target="_blank">${v}</a>` : v) + `</code>`
+								`<code class="code ${key === 'path' ? 'text-lg' : ''}">` +
+								(key === 'example'
+									? `<a href="${data.config.api}${v}" target="_blank">${v}</a>`
+									: v) +
+								`</code>`
 						)
 						.join('<br />');
 				}

@@ -2,6 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { minidenticon } from 'minidenticons';
 import { tableSourceValues } from '@skeletonlabs/skeleton';
 import numbro from 'numbro';
+import { filesize as _filesize } from 'filesize';
 
 export function dateDistance(date) {
 	return formatDistanceToNow(new Date(date));
@@ -47,4 +48,8 @@ export function getDIDProfileUrl(fed, item) {
 		return `${fed.app}/profile/${item.did}`;
 	}
 	return `${base}/profile/${item.did}`;
+}
+
+export function filesize(size) {
+	return _filesize(size);
 }

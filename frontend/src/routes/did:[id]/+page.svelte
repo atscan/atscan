@@ -1,5 +1,5 @@
 <script>
-	import { dateDistance, identicon, getDIDProfileUrl } from '$lib/utils.js';
+	import { dateDistance, identicon, getDIDProfileUrl, filesize } from '$lib/utils.js';
 	import { Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import SourceSection from '$lib/components/SourceSection.svelte';
@@ -88,6 +88,47 @@
 	{#if data.pds}
 		<h2 class="h2">PDS</h2>
 		<PDSTable sourceData={data.pds} {data} />
+	{/if}
+
+	<h2 class="h2">Repository</h2>
+	{#if item.repo && !item.repo.error}
+		<div class="table-container">
+			<!-- Native Table Element -->
+			<table class="table table-hover">
+				<tbody>
+					<tr>
+						<th class="text-right">Root</th>
+						<td>{item.repo.root}</td>
+					</tr>
+					<tr>
+						<th class="text-right">Signing Key</th>
+						<td>{item.repo.signingKey}</td>
+					</tr>
+					<tr>
+						<th class="text-right">Commits</th>
+						<td>{item.repo.commits}</td>
+					</tr>
+					<tr>
+						<th class="text-right">Size</th>
+						<td>{filesize(item.repo?.size)}</td>
+					</tr>
+					<tr>
+						<th class="text-right">Collections</th>
+						<td
+							>{Object.keys(item.repo?.collections)
+								.map((c) => `${item.repo.collections[c]} ${c}`)
+								.join(', ')}</td
+						>
+					</tr>
+					<tr>
+						<th class="text-right">Last indexed</th>
+						<td>{dateDistance(item.repo?.time)} ago</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	{:else}
+		<div>No repository info yet.</div>
 	{/if}
 
 	<SourceSection {data} model="did" />

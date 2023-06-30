@@ -8,9 +8,10 @@ async function index(ats) {
     const didsCount = await ats.db.did.countDocuments({
       "pds": { $in: [pds.url] },
     });
-    console.log(`${pds.url}: ${didsCount}`);
+    //console.log(`${pds.url}: ${didsCount}`);
     await ats.db.pds.updateOne({ url: pds.url }, { $set: { didsCount } });
   }
+  console.log("indexer round finished");
   //console.log(await whoiser("dev.otaso-sky.blue"));
 }
 

@@ -1,21 +1,9 @@
 import { ATScan } from "./lib/atscan.js";
 import { pooledMap } from "https://deno.land/std/async/mod.ts";
+import { timeout } from "./lib/utils.js";
 import "https://deno.land/std@0.192.0/dotenv/load.ts";
 
 const wait = 60 * 5;
-
-function timeout(ms, promise) {
-  return new Promise(function (resolve, reject) {
-    const start = performance.now();
-    setTimeout(function () {
-      reject(new Error("timeout"));
-    }, ms);
-    promise.then((v) => {
-      const end = performance.now();
-      return resolve([v, end - start]);
-    }, reject);
-  });
-}
 
 async function crawl(ats) {
   const arr = await ats.db.pds.find().toArray();
@@ -99,7 +87,7 @@ async function crawl(ats) {
       }`,
     );
   });
-  for await (const value of results) {}
+  for await (const _ of results) {}
 }
 
 if (Deno.args[0] === "daemon") {
