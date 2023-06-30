@@ -3,7 +3,8 @@ import { pooledMap } from "https://deno.land/std/async/mod.ts";
 import { timeout } from "./lib/utils.js";
 import "https://deno.land/std@0.192.0/dotenv/load.ts";
 
-const wait = 60 * 5;
+const WAIT = 1000 * 60 * 2;
+const TIMEOUT = 5000;
 
 async function crawl(ats) {
   const arr = await ats.db.pds.find().toArray();
@@ -54,7 +55,7 @@ async function crawl(ats) {
       const url = `${i.url}/xrpc/com.atproto.server.describeServer`;
       try {
         [res, ms] = await timeout(
-          5000,
+          TIMEOUT,
           fetch(url, {
             headers: {
               "User-Agent": "ATScan Crawler",
@@ -81,6 +82,12 @@ async function crawl(ats) {
     await ats.db.pds.updateOne({ url: i.url }, {
       $set: dbSet,
     });
+    if (ms && Number(ms) > 0) {
+      await ats.writeInflux("pds_response_time", "intField", Number(ms), [[
+        "pds",
+        host,
+      ]]);
+    }
     console.log(
       `-> ${i.url} ${ms ? "[" + ms + "ms]" : ""} ${
         err ? "error = " + err : ""
@@ -102,8 +109,8 @@ if (Deno.args[0] === "daemon") {
   await crawl(ats);
   console.log(`Initial crawl done`);
   ats.debug = false;
-  console.log(`Processing events [wait=${wait}s] ..`);
-  setInterval(() => crawl(ats), wait * 1000);
+  console.log(`Processing events [wait=${WAIT / 1000}s] ..`);
+  setInterval(() => crawl(ats), WAIT);
 } else {
   const ats = new ATScan({ debug: true });
   await ats.init();

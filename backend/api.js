@@ -74,6 +74,16 @@ router
     }
     item.host = item.url.replace(/^https?:\/\//, "");
     item.fed = findPDSFed(item);
+
+    const query = `
+      from(bucket: "ats-stats")
+        |> range(start: -1d)
+        |> filter(fn: (r) => r["_measurement"] == "pds_response_time")
+        |> filter(fn: (r) => r["pds"] == "${item.host}")
+        |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)`;
+
+    item.responseTimesDay = await ats.influxQuery.collectRows(query);
+
     ctx.response.body = item;
     perf(ctx);
   })
@@ -126,6 +136,7 @@ router
     }
 
     //console.log(JSON.stringify(query, null, 2), { sort, limit });
+    console.log(JSON.stringify(query));
     const count = await ats.db.did.count(query);
 
     for (
@@ -182,6 +193,17 @@ router
       out.push(plc);
     }
     ctx.response.body = out;
+    perf(ctx);
+  })
+  .get("/_metrics", async (ctx) => {
+    const metrics = {
+      pds_count: [await ats.db.pds.count(), "PDS count", "counter"],
+      did_count: [await ats.db.did.count(), "DID count", "counter"],
+    };
+    ctx.response.body = Object.keys(metrics).map((m) => {
+      const [data, help, type] = metrics[m];
+      return `# HELP ${m} ${help}\n# TYPE ${m} ${type}\n${m} ${data}\n`;
+    }).join("\n");
     perf(ctx);
   })
   .get("/:id.svg", async (ctx) => {

@@ -1,8 +1,9 @@
 <script>
 	import { CodeBlock, clipboard } from '@skeletonlabs/skeleton';
 
-	export let model = 'pds';
 	export let data;
+	export let model = 'pds';
+	export let hide = false;
 
 	const models = {
 		pds: { url: `${data.config.api}/pds/%`, key: 'host' },
@@ -15,7 +16,9 @@
 </script>
 
 <h2 class="h2">Source</h2>
-<CodeBlock code={JSON.stringify(data.item, null, 2)} language="json" />
+{#if !hide}
+	<CodeBlock code={JSON.stringify(data.item, null, 2)} language="json" />
+{/if}
 
 <div>
 	<p>You can get this data as JSON by making a simple HTTP GET request to our API endpoint:</p>

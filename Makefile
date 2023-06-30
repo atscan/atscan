@@ -33,6 +33,9 @@ install:
 	deno install --unstable -A -f -n ats ./cli/ats.js
 	deno install --unstable -A -f -n ats-repo ./cli/ats-repo.js
 
+typesense-init:
+	deno run --unstable --allow-net --allow-read ./backend/typesense-init.js
+
 format:
 	cd backend && deno fmt **.js
 	cd frontend && npm run format

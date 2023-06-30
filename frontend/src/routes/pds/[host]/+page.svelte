@@ -1,9 +1,11 @@
 <script>
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import DIDTable from '$lib/components/DIDTable.svelte';
-	import { formatNumber, dateDistance, getFlagEmoji } from '$lib/utils.js';
+	import { formatNumber, dateDistance, getFlagEmoji, isDarkMode } from '$lib/utils.js';
 	import SourceSection from '$lib/components/SourceSection.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
+	import Chart from '$lib/components/Chart.svelte';
+	import { onMount } from 'svelte';
 
 	export let data;
 
@@ -87,6 +89,58 @@
 			link: `/pds?q=fed:${item.fed}`
 		});
 	}
+
+	$: chartResponseTimes = {};
+	let darkMode = null;
+	onMount(() => {
+		darkMode = isDarkMode(document);
+		chartResponseTimes = {
+			animationDuration: 500,
+			title: {
+				text: `${item.host} response times in last 24 hours`
+			},
+			tooltip: {
+				trigger: 'axis',
+				formatter: '{b}: {c} ms'
+			},
+			legend: {
+				data: [chartHost]
+			},
+			grid: {
+				left: '3%',
+				right: '4%',
+				bottom: '3%',
+				containLabel: true
+			},
+			toolbox: {
+				feature: {
+					saveAsImage: {}
+				}
+			},
+			xAxis: {
+				type: 'category',
+				boundaryGap: false,
+				data: item.responseTimesDay?.map((r) => r._time) || []
+			},
+			yAxis: {
+				type: 'value',
+				axisLabel: {
+					formatter: '{value} ms'
+				}
+			},
+			series: [
+				{
+					name: chartHost,
+					type: 'line',
+					stack: 'ms',
+					data: item.responseTimesDay?.map((r) => r._value) || []
+				}
+			]
+		};
+	});
+	console.log(darkMode);
+
+	const chartHost = 'Central Europe (CZ)';
 </script>
 
 <BasicPage {data} title={item.host} {breadcrumb}>
@@ -108,6 +162,11 @@
 		{/each}
 	</div>
 
+	<h2 class="h2">Response times</h2>
+	<div class="w-full h-64">
+		<Chart options={chartResponseTimes} />
+	</div>
+
 	<h2 class="h2">
 		<a href="/dids?q=pds:{item.host}">DIDs</a>
 		<span class="font-normal text-2xl">({formatNumber(data.dids.count)})</span>
@@ -123,5 +182,5 @@
 		</div>
 	{/if}
 
-	<SourceSection {data} model="pds" />
+	<SourceSection {data} model="pds" hide="true" />
 </BasicPage>

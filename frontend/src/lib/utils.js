@@ -53,3 +53,8 @@ export function getDIDProfileUrl(fed, item) {
 export function filesize(size) {
 	return _filesize(size);
 }
+
+export function isDarkMode(document) {
+	const elemHtmlClasses = document.documentElement.classList;
+	return elemHtmlClasses.contains('dark');
+}

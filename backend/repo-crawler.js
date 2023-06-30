@@ -1,23 +1,27 @@
 import { ensureDir } from "https://deno.land/std@0.192.0/fs/ensure_dir.ts";
 import { join } from "https://deno.land/std@0.192.0/path/posix.ts";
 import { pooledMap } from "https://deno.land/std/async/mod.ts";
+import * as fsize from "npm:filesize";
 import { ATScan } from "./lib/atscan.js";
 import { inspect } from "./lib/car.js";
 import { timeout } from "./lib/utils.js";
 import _ from "npm:lodash";
+
+const filesize = fsize.filesize;
 
 const DB_PATH = "./backend/db/repo";
 await ensureDir(DB_PATH);
 
 async function crawl(ats) {
   let expiry = new Date();
-  expiry.setDate(expiry.getDate() - 1);
+  expiry.setDate(expiry.getDate() - 10);
 
   const dids = await ats.db.did.find({
+    //'pds': { $in: [ 'https://test-pds.gwei.cz' ] },
     $or: [{ "repo.time": { $lte: expiry } }, { "repo": { $exists: false } }],
   }).limit(10000).toArray();
 
-  const results = pooledMap(4, _.shuffle(dids), async (didInfo) => {
+  const results = pooledMap(8, _.shuffle(dids), async (didInfo) => {
     const did = didInfo.did;
     const signingKey = didInfo.revs[didInfo.revs.length - 1].operation
       .verificationMethods?.atproto;
@@ -89,7 +93,7 @@ async function crawl(ats) {
     console.log(
       `[${did}@${pds}] displayName=${
         JSON.stringify(repo.profile?.displayName)
-      }`,
+      } [${filesize(repo.size)}]`,
     );
     /*console.log(
       `[${did}@${pds}] Done [${

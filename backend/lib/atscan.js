@@ -2,6 +2,7 @@
 import { parse, stringify } from "https://deno.land/std@0.184.0/yaml/mod.ts";
 import { MongoClient } from "npm:mongodb";
 import "https://deno.land/std@0.192.0/dotenv/load.ts";
+import {InfluxDB} from 'npm:@influxdata/influxdb-client'
 
 const BSKY_OFFICIAL_PDS = [
   "https://bsky.social",
@@ -17,6 +18,9 @@ export class ATScan {
 
   async init() {
     await this.ecosystemLoad();
+    const influxConfig = {url: Deno.env.get('INFLUXDB_HOST'), token: Deno.env.get('INFLUXDB_TOKEN')}
+    this.influx = new InfluxDB(influxConfig);
+    this.influxQuery = this.influx.getQueryApi(Deno.env.get('INFLUXDB_ORG'))
     this.client = new MongoClient(Deno.env.get("MONGODB_URL"));
     await this.client.connect();
     console.log(`Connected to MongoDB: ${Deno.env.get("MONGODB_URL")}`);
@@ -137,5 +141,21 @@ export class ATScan {
   startDaemon() {
     console.log("Starting daemon ..");
     const ecosInt = setInterval(() => this.ecosystemLoad(), 30 * 1000);
+  }
+
+  async writeInflux (name, type, value, tags = []) {
+    const point = `${name},${tags.map(t => t.join('=')).join(', ')} value=${value} ${Date.now()}`;
+    const resp = await fetch(`${Deno.env.get('INFLUXDB_HOST')}/api/v2/write?org=${Deno.env.get('INFLUXDB_ORG')}&bucket=${Deno.env.get('INFLUXDB_BUCKET')}&precision=ms`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Token ${Deno.env.get('INFLUXDB_TOKEN')}`
+      },
+      body: point
+    })
+    if (resp.status > 299) {
+      console.error('influx error: '+resp.status, Deno.env.get('INFLUXDB_TOKEN'))
+      console.error(await resp.json())
+    }
+    return true
   }
 }
