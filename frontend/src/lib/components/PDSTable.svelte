@@ -1,4 +1,5 @@
 <script>
+	import { createEventDispatcher } from 'svelte';
 	import Table from '$lib/components/Table.svelte';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import {
@@ -10,6 +11,12 @@
 	} from '$lib/utils.js';
 	export let sourceData;
 	export let data;
+
+	const dispatch = createEventDispatcher();
+
+	function onHeadSelected(event) {
+		dispatch('headSelected', event.detail);
+	}
 
 	function tableMap({ val, key, row }) {
 		if (key === 'plcs' && val) {
@@ -93,14 +100,14 @@
 	}
 	$: tableSimple = {
 		head: [
-			'Federation',
+			['Federation', 'fed'],
 			'',
-			'Host',
-			'DIDs',
-			'Location',
-			'PLCs (User Domains)',
-			'Resp. time',
-			'Last Online'
+			['Host', 'host'],
+			['DIDs', 'didsCount'],
+			['Location', 'country'],
+			['PLCs (User Domains)', 'plcs'],
+			['Resp. time', 'ms'],
+			['Last Online', 'lastOnline']
 		],
 		body: customTableMapper(
 			sourceData,
@@ -111,4 +118,9 @@
 	};
 </script>
 
-<Table source={tableSimple} />
+<Table
+	source={tableSimple}
+	currentSort={data.sort}
+	defaultSort=""
+	on:headSelected={(e) => onHeadSelected(e)}
+/>

@@ -12,6 +12,7 @@
 	const search = writable(data.q?.trim() || '');
 	$: sourceData = data.did;
 	let onlySandbox = data.onlySandbox || null;
+	let sort = data.sort || null;
 
 	function sandboxToggleHandler() {
 		sourceData = null;
@@ -37,7 +38,15 @@
 			q = q.replace(/fed:sandbox/, '');
 		}
 		q = q.trim();
-		const path = '/dids' + (q !== '' ? `?q=${q}` : '');
+		let args = [];
+		if (q) {
+			args.push(`q=${q}`);
+		}
+		if (sort && !(args.length === 0 && sort === '!lastMod')) {
+			args.push(`sort=${sort}`);
+		}
+
+		const path = '/dids' + (args.length > 0 ? '?' + args.join('&') : '');
 		const currentPath = $page.url.pathname + $page.url.search;
 		if (currentPath === path) {
 			return null;
@@ -71,6 +80,12 @@
 
 	function selectionHandler(i) {
 		return goto(`/${i.detail[0]}`);
+	}
+
+	function onHeadSelected(e) {
+		sourceData = null;
+		sort = sort === e.detail ? (sort.startsWith('!') ? '' : '!') + e.detail : e.detail;
+		gotoNewTableState();
 	}
 </script>
 
@@ -126,6 +141,6 @@
 				All DIDs {#if onlySandbox} on sandbox{/if} ({formatNumber(data.totalCount)}):
 			{/if}
 		</div>
-		<DIDTable {sourceData} {data} />
+		<DIDTable {sourceData} {data} on:headSelected={(e) => onHeadSelected(e)} />
 	{/if}
 </BasicPage>

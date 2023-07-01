@@ -11,6 +11,14 @@
 	 * @type {TableSource}
 	 */
 	export let source;
+
+	export let currentSort = null;
+	export let defaultSort;
+
+	if (!currentSort) {
+		currentSort = defaultSort;
+	}
+
 	/** Enables row hover style and `on:selected` event when rows are clicked. */
 	export let interactive = false;
 	export let interactiveOnlyHover = true;
@@ -55,6 +63,10 @@
 		}
 	}
 
+	function onHeaderClick(event, meta) {
+		dispatch('headSelected', meta);
+	}
+
 	// Row Keydown Handler
 	function onRowKeydown(event, rowIndex) {
 		if (['Enter', 'Space'].includes(event.code)) onRowClick(event, rowIndex);
@@ -78,8 +90,18 @@
 		<!-- Head -->
 		<thead class="table-head {regionHead}">
 			<tr>
-				{#each source.head as heading }
-					<th class="{regionHeadCell}">{@html heading}</th>
+				{#each source.head as heading}
+					<th class="{regionHeadCell} cursor-pointer hover:underline text-sm"
+							on:click={(e) => { onHeaderClick(e, Array.isArray(heading) ? heading[1] : heading) }}>
+						{@html Array.isArray(heading) ? heading[0] : heading}
+						{#if Array.isArray(heading) && (currentSort?.replace(/^!/, '') === heading[1] || '!'+currentSort === heading[1])}
+							{#if currentSort?.startsWith('!')}
+								↑
+							{:else}
+								↓
+							{/if}
+						{/if}
+					</th>
 				{/each}
 			</tr>
 		</thead>

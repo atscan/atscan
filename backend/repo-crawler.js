@@ -39,7 +39,7 @@ async function crawl(ats) {
     const url = `${pds}/xrpc/com.atproto.sync.getRepo?did=${did}`;
     let repoRes;
     try {
-      [repoRes] = await timeout(5000, fetch(url));
+      [repoRes] = await timeout(20 * 1000, fetch(url));
     } catch (e) {
       repoRes = { ok: false };
       console.error(e);

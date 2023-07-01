@@ -6,13 +6,23 @@
 	import { page } from '$app/stores';
 	import PDSTable from '$lib/components/PDSTable.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
+	import { orderBy } from 'lodash';
+	import { compute_slots } from 'svelte/internal';
 
 	export let data;
 
 	const search = writable($page.url.searchParams.get('q') || '');
+	let sort = data.sort || null;
 
 	function gotoNewTableState() {
-		const path = '/pds' + ($search !== '' ? `?q=${$search}` : '');
+		let args = [];
+		if ($search !== '') {
+			args.push(`q=${$search}`);
+		}
+		if (sort) {
+			args.push(`sort=${sort}`);
+		}
+		const path = '/pds' + (args.length > 0 ? '?' + args.join('&') : '');
 		const currentPath = $page.url.pathname + $page.url.search;
 		if (currentPath === path) {
 			return null;
@@ -32,6 +42,12 @@
 	$: sourceData = (function filterSourceData(bd) {
 		const tokens = $search.split(' ');
 		let base = JSON.parse(JSON.stringify(bd)); //.filter(d => d.inspect?.lastOnline)
+		base = base.map((i) => {
+			i.country = i.ip?.country;
+			i.ms = !i.inspect?.current.err ? i.inspect?.current?.ms : null;
+			i.lastOnline = i.inspect?.lastOnline;
+			return i;
+		});
 		let str = [];
 		for (const t of tokens) {
 			const cmatch = t.match(/^country:([\w]{2})$/);
@@ -54,6 +70,19 @@
 		if (txt) {
 			base = base.filter((i) => i.url.match(new RegExp(txt, 'i')));
 		}
+		if (sort) {
+			let sortReal = sort;
+			let sortDirection = 1;
+			let sortKey = sortReal.replace(/^!/, '');
+			if (sortReal.startsWith('!')) {
+				sortDirection = -1;
+			}
+			base = orderBy(base, [sortKey], [sortDirection === -1 ? 'desc' : 'asc']);
+		} else {
+			console.log('x');
+			base = orderBy(base, ['env', 'err', 'didsCount'], ['asc', 'asc', 'desc']);
+		}
+
 		return base;
 	})(data.pds);
 
@@ -61,6 +90,11 @@
 		const url = '?q=' + $search;
 		goto(url);
 		return false;
+	}
+
+	function onHeadSelected(e) {
+		sort = sort === e.detail ? (sort.startsWith('!') ? '' : '!') + e.detail : e.detail;
+		gotoNewTableState();
 	}
 </script>
 
@@ -84,5 +118,5 @@
 			All PDS Instances ({formatNumber(sourceData.length)}):
 		{/if}
 	</div>
-	<PDSTable {sourceData} {data} />
+	<PDSTable {sourceData} {data} on:headSelected={(e) => onHeadSelected(e)} />
 </BasicPage>

@@ -90,7 +90,26 @@ router
   .get("/dids", async (ctx) => {
     const out = [];
     const query = { $and: [{}] };
-    let sort = { lastMod: -1 };
+
+    const availableSort = {
+      did: { key: "did" },
+      lastMod: { key: "lastMod" },
+      pds: { key: "pds" },
+    };
+
+    let inputSort = ctx.request.url.searchParams.get("sort");
+    let inputSortDirection = 1;
+    if (inputSort && inputSort.startsWith("!")) {
+      inputSortDirection = -1;
+      inputSort.replace(/^!/, "");
+    }
+    let inputSortConfig = null;
+    if (inputSort) {
+      inputSortConfig = availableSort[inputSort];
+    }
+    let sort = inputSortConfig
+      ? { [inputSortConfig.key]: inputSortDirection }
+      : { lastMod: -1 };
 
     let q = ctx.request.url.searchParams.get("q")?.replace(/^@/, "");
     if (q) {

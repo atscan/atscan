@@ -1,4 +1,5 @@
 <script>
+	import { createEventDispatcher } from 'svelte';
 	import Table from '$lib/components/Table.svelte';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import {
@@ -10,6 +11,12 @@
 	} from '$lib/utils.js';
 	export let sourceData;
 	export let data;
+
+	const dispatch = createEventDispatcher();
+
+	function onHeadSelected(event) {
+		dispatch('headSelected', event.detail);
+	}
 
 	function tableMap({ val, key, row }) {
 		if (key === 'srcHost') {
@@ -33,7 +40,10 @@
 			)}</span></a></div>`;
 			const asa = row.revs[row.revs.length - 1].operation?.alsoKnownAs;
 			const handles = asa
-				? asa.filter((h) => !h.match(/at:\/\/data:x\//)).map((h) => h.replace(/^at:\/\//, ''))
+				? asa
+						.filter((h) => h.match(/^at:\/\//))
+						.map((h) => h.replace(/^at:\/\//, ''))
+						.filter((h) => h.match(/^[a-z0-9\.\-]+$/))
 				: [];
 			val += `        <div class="mt-1.5">`;
 			if (fed) {
@@ -41,7 +51,12 @@
 			}
 			val +=
 				`            <span>${handles
-					.map((h) => `<a href="${link}" target="_blank" class="anchor">@${h}</a>`)
+					.map(
+						(h) =>
+							`<a href="${link}" target="_blank" class="anchor">@${
+								h.length > 40 ? h.substring(0, 40) + '..' : h
+							}</a>`
+					)
 					.join(', ')} ` +
 				(row.revs.length > 1 ? `(#${row.revs.length - 1})` : '') +
 				`</span>`;
@@ -69,10 +84,15 @@
 	}
 	$: tableSimple = {
 		// A list of heading labels.
-		head: ['', 'DID', 'PDS (PLC)', 'Updated'],
+		head: ['', ['DID', 'did'], ['PDS (PLC)', 'pds'], ['Updated', 'lastMod']],
 		body: customTableMapper(sourceData || [], ['img', 'did', 'srcHost', 'lastMod'], tableMap),
 		meta: customTableMapper(sourceData || [], ['did_raw', 'url'], tableMap)
 	};
 </script>
 
-<Table source={tableSimple} />
+<Table
+	source={tableSimple}
+	currentSort={data.sort}
+	defaultSort=""
+	on:headSelected={(e) => onHeadSelected(e)}
+/>

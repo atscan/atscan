@@ -2,8 +2,8 @@
 	import Breadcrumb from './Breadcrumb.svelte';
 
 	export let title;
-	export let breadcrumb;
 	export let data;
+	export let breadcrumb = null;
 	export let noHeader = false;
 </script>
 
