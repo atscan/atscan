@@ -13,22 +13,18 @@ export async function load({ fetch, url, parent }) {
 	if (sort) {
 		args.push(`sort=${sort}`);
 	}
-
 	const res = await fetch(`${config.api}/dids` + (args.length > 0 ? '?' + args.join('&') : ''), {
 		headers: { 'x-ats-wrapped': 'true' }
 	});
 	const json = await res.json();
-	const totalCount = json.count;
-	const did = _.orderBy(json.items, ['time'], ['desc']);
 	let onlySandbox = false;
 	if (q?.match(/fed:sandbox/)) {
 		onlySandbox = true;
 		q = q.replace('fed:sandbox', '').trim();
 	}
-
 	return {
-		did,
-		totalCount,
+		did: json.items,
+		totalCount: json.count,
 		q,
 		sort,
 		onlySandbox

@@ -80,7 +80,7 @@ router
         |> range(start: -1d)
         |> filter(fn: (r) => r["_measurement"] == "pds_response_time")
         |> filter(fn: (r) => r["pds"] == "${item.host}")
-        |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)`;
+        |> aggregateWindow(every: 3m, fn: mean, createEmpty: true)`;
 
     item.responseTimesDay = await ats.influxQuery.collectRows(query);
 
@@ -95,13 +95,14 @@ router
       did: { key: "did" },
       lastMod: { key: "lastMod" },
       pds: { key: "pds" },
+      size: { key: "repo.size" },
     };
 
     let inputSort = ctx.request.url.searchParams.get("sort");
     let inputSortDirection = 1;
     if (inputSort && inputSort.startsWith("!")) {
       inputSortDirection = -1;
-      inputSort.replace(/^!/, "");
+      inputSort = inputSort.replace(/^!/, "");
     }
     let inputSortConfig = null;
     if (inputSort) {
@@ -155,7 +156,7 @@ router
     }
 
     //console.log(JSON.stringify(query, null, 2), { sort, limit });
-    console.log(JSON.stringify(query));
+    //console.log(JSON.stringify({ query, sort, inputSort, inputSortConfig }));
     const count = await ats.db.did.count(query);
 
     for (

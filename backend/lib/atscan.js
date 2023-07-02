@@ -140,7 +140,7 @@ export class ATScan {
   }
 
   async writeInflux (name, type, value, tags = []) {
-    const point = `${name},${tags.map(t => t.join('=')).join(', ')} value=${value} ${Date.now()}`;
+    const point = `${name},${tags.map(t => t.join('=')).join(',')} value=${value} ${Date.now()}`;
     const resp = await fetch(`${Deno.env.get('INFLUXDB_HOST')}/api/v2/write?org=${Deno.env.get('INFLUXDB_ORG')}&bucket=${Deno.env.get('INFLUXDB_BUCKET')}&precision=ms`, {
       method: 'POST',
       headers: {

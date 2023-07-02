@@ -97,17 +97,26 @@
 		});
 	}
 
+	const crawlers = {
+		local: {
+			location: 'Central Europe (Prague, CZ)'
+		},
+		texas: {
+			location: 'North America (Texas, US)'
+		}
+	};
+
 	$: chartResponseTimes = {
 		animationDuration: 500,
 		title: {
 			text: `${item.host} response times in last 24 hours`
 		},
 		tooltip: {
-			trigger: 'axis',
-			formatter: '{b}: {c} ms'
+			trigger: 'axis'
+			//formatter: '{b}: {c} ms'
 		},
 		legend: {
-			data: [chartHost]
+			data: Object.keys(crawlers).map((c) => crawlers[c].location)
 		},
 		grid: {
 			left: '2%',
@@ -123,7 +132,7 @@
 		xAxis: {
 			type: 'category',
 			boundaryGap: false,
-			data: item.responseTimesDay?.map((r) => r._time) || []
+			data: item.responseTimesDay?.filter((r) => r.table === 0).map((r) => r._time) || []
 		},
 		yAxis: {
 			type: 'value',
@@ -131,16 +140,16 @@
 				formatter: '{value} ms'
 			}
 		},
-		series: [
-			{
-				name: chartHost,
+		series: Object.keys(crawlers).map((crawler) => {
+			const crawlerOptions = crawlers[crawler];
+			return {
+				name: crawlerOptions.location,
 				type: 'line',
-				stack: 'ms',
-				data: item.responseTimesDay?.map((r) => r._value) || []
-			}
-		]
+				//stack: 'ms',
+				data: item.responseTimesDay?.filter((r) => r.crawler === crawler).map((r) => r._value) || []
+			};
+		})
 	};
-	const chartHost = 'Central Europe (Prague, CZ)';
 </script>
 
 <BasicPage {data} title={item.host} {breadcrumb} noHeader="true">

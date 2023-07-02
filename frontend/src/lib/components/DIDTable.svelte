@@ -7,7 +7,8 @@
 		identicon,
 		formatNumber,
 		customTableMapper,
-		getDIDProfileUrl
+		getDIDProfileUrl,
+		filesize
 	} from '$lib/utils.js';
 	export let sourceData;
 	export let data;
@@ -80,12 +81,28 @@
 		if (key === 'url') {
 			val = `/${row.did}`;
 		}
+		if (key === 'size') {
+			val =
+				'<div class="text-lg">' +
+				(row.repo?.size
+					? filesize(row.repo.size) +
+					  '</div><div>' +
+					  formatNumber(
+							Object.keys(row.repo.collections).reduce((t, c) => (t += row.repo.collections[c]), 0)
+					  ) +
+					  ' items</div>'
+					: '-');
+		}
 		return val;
 	}
 	$: tableSimple = {
 		// A list of heading labels.
-		head: ['', ['DID', 'did'], ['PDS (PLC)', 'pds'], ['Updated', 'lastMod']],
-		body: customTableMapper(sourceData || [], ['img', 'did', 'srcHost', 'lastMod'], tableMap),
+		head: ['', ['DID', 'did'], ['PDS (PLC)', 'pds'], ['Repo size', 'size'], ['Updated', 'lastMod']],
+		body: customTableMapper(
+			sourceData || [],
+			['img', 'did', 'srcHost', 'size', 'lastMod'],
+			tableMap
+		),
 		meta: customTableMapper(sourceData || [], ['did_raw', 'url'], tableMap)
 	};
 </script>

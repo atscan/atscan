@@ -1,18 +1,93 @@
 import { ATScan } from "./lib/atscan.js";
 import { pooledMap } from "https://deno.land/std/async/mod.ts";
 import { timeout } from "./lib/utils.js";
+import {
+  connect,
+  JSONCodec,
+  StringCodec,
+} from "https://deno.land/x/nats/src/mod.ts";
 import "https://deno.land/std@0.192.0/dotenv/load.ts";
 
 const WAIT = 1000 * 60 * 2;
 const TIMEOUT = 5000;
 
+const nc = await connect({
+  servers: Deno.env.get("NATS_SERVERS"),
+});
+const jc = JSONCodec();
+console.log(`connected to ${nc.getServer()}`);
+
+const hosts = {
+  local: {},
+  texas: {},
+};
+
+async function crawlUrl(url, host = "local") {
+  if (host === "local") {
+    try {
+      const [, ms] = await timeout(
+        TIMEOUT,
+        fetch(url, {
+          method: "OPTIONS",
+          headers: {
+            "User-Agent": "ATScan Crawler",
+            "connection": "keep-alive",
+            keepalive: "timeout=5, max=1000",
+          },
+        }),
+      );
+    } catch (e) {
+      return { err: "timeout" };
+    }
+    let res, data, ms, err;
+    try {
+      [res, ms] = await timeout(
+        TIMEOUT,
+        fetch(url, {
+          headers: {
+            "User-Agent": "ATScan Crawler",
+          },
+        }),
+      );
+      if (res) {
+        data = await res.json();
+      }
+    } catch (e) {
+      err = e.message;
+    }
+    return {
+      err,
+      data,
+      ms,
+    };
+  }
+  const hostConfig = hosts[host];
+  if (!hostConfig) {
+    console.error(`Unknown host: ${host}`);
+    return { err: "unknown host" };
+  }
+  const resp = await nc.request(`ats-nodes.${host}.http`, jc.encode({ url }), {
+    timeout: 60000,
+  });
+  const { err, data, ms } = jc.decode(resp.data);
+  return { err, data, ms };
+}
+
 async function crawl(ats) {
   const arr = await ats.db.pds.find().toArray();
   const results = pooledMap(25, arr.slice(0, 1000), async (i) => {
     let err = null;
-    let res, data, ms;
+
+    if (i.url.match(/^https?:\/\/(localhost|example.com)/)) {
+      err = "not allowed domain";
+      await ats.db.pds.updateOne({ url: i.url }, {
+        $set: { "inspect.current": { err } },
+      });
+      return;
+    }
 
     const host = i.url.replace(/^https?:\/\//, "");
+
     if (!i.dns) {
       console.log("sending dns request: ", i.url);
       let dns =
@@ -44,54 +119,41 @@ async function crawl(ats) {
       }
     }
 
-    if (i.url.match(/^https?:\/\/(localhost|example.com)/)) {
-      err = "not allowed domain";
-    }
     if (!i.dns.Answer) {
       err = "not existing domain";
     }
 
-    if (!err) {
-      const url = `${i.url}/xrpc/com.atproto.server.describeServer`;
-      try {
-        [res, ms] = await timeout(
-          TIMEOUT,
-          fetch(url, {
-            headers: {
-              "User-Agent": "ATScan Crawler",
-            },
-          }),
-        );
-        if (res) {
-          data = await res.json();
+    const url = `${i.url}/xrpc/com.atproto.server.describeServer`;
+    await Promise.all(
+      Object.keys(hosts).map(async (chost) => {
+        const { err, data, ms } = await crawlUrl(url, chost);
+        const inspect = {
+          err,
+          data,
+          ms,
+          time: new Date().toISOString(),
+        };
+        if (chost === "local") {
+          const dbSet = { "inspect.current": inspect };
+          if (!err && data) {
+            dbSet["inspect.lastOnline"] = (new Date()).toISOString();
+          }
+          await ats.db.pds.updateOne({ url: i.url }, {
+            $set: dbSet,
+          });
         }
-      } catch (e) {
-        err = e.message;
-      }
-    }
-    const inspect = {
-      err,
-      data,
-      ms,
-      time: new Date().toISOString(),
-    };
-    const dbSet = { "inspect.current": inspect };
-    if (!err && data) {
-      dbSet["inspect.lastOnline"] = (new Date()).toISOString();
-    }
-    await ats.db.pds.updateOne({ url: i.url }, {
-      $set: dbSet,
-    });
-    if (ms && Number(ms) > 0) {
-      await ats.writeInflux("pds_response_time", "intField", Number(ms), [[
-        "pds",
-        host,
-      ]]);
-    }
-    console.log(
-      `-> ${i.url} ${ms ? "[" + ms + "ms]" : ""} ${
-        err ? "error = " + err : ""
-      }`,
+        if (ms && Number(ms) > 0) {
+          await ats.writeInflux("pds_response_time", "intField", Number(ms), [
+            ["pds", host],
+            ["crawler", chost],
+          ]);
+        }
+        console.log(
+          `[${chost}] -> ${i.url} ${ms ? "[" + ms + "ms]" : ""} ${
+            err ? "error = " + err : ""
+          }`,
+        );
+      }),
     );
   });
   for await (const _ of results) {}

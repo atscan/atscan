@@ -1,5 +1,5 @@
 <script>
-	import { dateDistance, identicon, getDIDProfileUrl, filesize } from '$lib/utils.js';
+	import { dateDistance, identicon, getDIDProfileUrl, filesize, formatNumber } from '$lib/utils.js';
 	import { Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import SourceSection from '$lib/components/SourceSection.svelte';
@@ -106,17 +106,28 @@
 					</tr>
 					<tr>
 						<th class="text-right">Commits</th>
-						<td>{item.repo.commits}</td>
+						<td>{formatNumber(item.repo.commits)}</td>
 					</tr>
 					<tr>
 						<th class="text-right">Size</th>
 						<td>{filesize(item.repo?.size)}</td>
 					</tr>
 					<tr>
+						<th class="text-right">Records</th>
+						<td
+							>{formatNumber(
+								Object.keys(item.repo?.collections).reduce(
+									(t, c) => (t += item.repo.collections[c]),
+									0
+								)
+							)} items</td
+						>
+					</tr>
+					<tr>
 						<th class="text-right">Collections</th>
 						<td
 							>{Object.keys(item.repo?.collections)
-								.map((c) => `${item.repo.collections[c]} ${c}`)
+								.map((c) => `${formatNumber(item.repo.collections[c])} ${c}`)
 								.join(', ')}</td
 						>
 					</tr>
@@ -131,5 +142,5 @@
 		<div>No repository info yet.</div>
 	{/if}
 
-	<SourceSection {data} model="did" />
+	<SourceSection {data} model="did" hide="true" />
 </BasicPage>
