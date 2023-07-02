@@ -1,15 +1,30 @@
 import { ATScan } from "./lib/atscan.js";
 import whoiser from "npm:whoiser";
 
-const wait = 60 * 15;
+const wait = 60 * 5;
 
 async function index(ats) {
   for (const pds of await ats.db.pds.find().toArray()) {
     const didsCount = await ats.db.did.countDocuments({
       "pds": { $in: [pds.url] },
     });
-    //console.log(`${pds.url}: ${didsCount}`);
-    await ats.db.pds.updateOne({ url: pds.url }, { $set: { didsCount } });
+
+    const stages = [
+      { $match: { pds: { $in: [pds.url] } } },
+      {
+        $group: {
+          _id: "$groupField",
+          sum: {
+            $sum: "$repo.size",
+          },
+        },
+      },
+    ];
+    const sizeRes = await ats.db.did.aggregate(stages).toArray();
+    const size = sizeRes[0].sum;
+    //console.log(`${pds.url}: ${size}`);
+
+    await ats.db.pds.updateOne({ url: pds.url }, { $set: { didsCount, size } });
   }
   console.log("indexer round finished");
   //console.log(await whoiser("dev.otaso-sky.blue"));
@@ -33,13 +48,5 @@ if (Deno.args[0] === "daemon") {
   await ats.init();
   await index(ats);
 
-  for (
-    const did of await ats.db.did.find({ lastMod: { $exists: false } })
-      .toArray()
-  ) {
-    await ats.db.did.updateOne({ _id: did._id }, {
-      $set: { lastMod: did.revs[did.revs.length - 1].createdAt },
-    });
-    console.log(`${did} updated ${did.revs[did.revs.length - 1].createdAt}`);
-  }
+  Deno.exit(0);
 }

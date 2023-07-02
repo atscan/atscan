@@ -15,6 +15,8 @@ const colsDefs = {
   "app.bsky.graph.follow": { key: "follow" },
   "app.bsky.feed.generator": { key: "generator" },
   "app.bsky.graph.block": { key: "block" },
+  "app.bsky.graph.list": { key: "list" },
+  "app.bsky.graph.listitem": { key: "listitem" },
 };
 
 export async function readRaw(data) {

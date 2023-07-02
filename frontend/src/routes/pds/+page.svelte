@@ -79,7 +79,6 @@
 			}
 			base = orderBy(base, [sortKey], [sortDirection === -1 ? 'desc' : 'asc']);
 		} else {
-			console.log('x');
 			base = orderBy(base, ['env', 'err', 'didsCount'], ['asc', 'asc', 'desc']);
 		}
 

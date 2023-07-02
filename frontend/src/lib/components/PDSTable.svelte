@@ -7,7 +7,8 @@
 		identicon,
 		formatNumber,
 		customTableMapper,
-		getPDSStatus
+		getPDSStatus,
+		filesize
 	} from '$lib/utils.js';
 	export let sourceData;
 	export let data;
@@ -70,6 +71,9 @@
 		if (key === 'didsCount') {
 			val = `<a href="/dids?q=pds:${row.host}" class="anchor">${formatNumber(val)}</a>`;
 		}
+		if (key === 'size') {
+			val = row.size ? filesize(row.size) : '-';
+		}
 		if (key === 'lastOnline' && row.inspect) {
 			val = `<span class="text-xs">${
 				row.inspect.lastOnline && !row.inspect?.current?.err
@@ -100,6 +104,7 @@
 			'',
 			['Host', 'host'],
 			['DIDs', 'didsCount'],
+			['Size', 'size'],
 			['Location', 'country'],
 			['PLCs (User Domains)', 'plcs'],
 			['Resp. time', 'responseTime'],
@@ -107,7 +112,17 @@
 		],
 		body: customTableMapper(
 			sourceData,
-			['fed', 'status', 'host', 'didsCount', 'location', 'plcs', 'responseTime', 'lastOnline'],
+			[
+				'fed',
+				'status',
+				'host',
+				'didsCount',
+				'size',
+				'location',
+				'plcs',
+				'responseTime',
+				'lastOnline'
+			],
 			tableMap
 		),
 		meta: customTableMapper(sourceData, ['host_raw', 'url'], tableMap)

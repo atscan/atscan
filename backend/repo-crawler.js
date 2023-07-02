@@ -21,7 +21,7 @@ async function crawl(ats) {
     $or: [{ "repo.time": { $lte: expiry } }, { "repo": { $exists: false } }],
   }).limit(10000).toArray();
 
-  const results = pooledMap(8, _.shuffle(dids), async (didInfo) => {
+  const results = pooledMap(1, _.shuffle(dids), async (didInfo) => {
     const did = didInfo.did;
     const signingKey = didInfo.revs[didInfo.revs.length - 1].operation
       .verificationMethods?.atproto;
@@ -37,6 +37,7 @@ async function crawl(ats) {
 
     // fetch remote repo
     const url = `${pds}/xrpc/com.atproto.sync.getRepo?did=${did}`;
+    console.log(url);
     let repoRes;
     try {
       [repoRes] = await timeout(20 * 1000, fetch(url));
@@ -49,6 +50,7 @@ async function crawl(ats) {
       });
       return;
     }
+    console.log(`downloaded: ${url}`);
     if (!repoRes.ok) {
       let message = null;
       if ([403, 500].includes(repoRes.status)) {
@@ -70,6 +72,7 @@ async function crawl(ats) {
     try {
       repo = await inspect(data, did, signingKey);
     } catch (e) {
+      console.error(e);
       await ats.db.did.updateOne({ did }, {
         $set: { repo: { error: e.message, time: new Date() } },
       });
