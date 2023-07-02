@@ -5,13 +5,11 @@
 		formatNumber,
 		dateDistance,
 		getFlagEmoji,
-		isDarkMode,
 		getPDSStatus
 	} from '$lib/utils.js';
 	import SourceSection from '$lib/components/SourceSection.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
 	import Chart from '$lib/components/Chart.svelte';
-	import { onMount } from 'svelte';
 
 	export let data;
 
@@ -40,13 +38,13 @@
 					item.host
 				}" class="anchor">list</a>)`
 			},
-			{
+			,
+			/*{
 				title: 'Response time',
 				value: item.inspect?.current?.ms
 					? item.inspect?.current?.ms + 'ms (from Central Europe)'
 					: `Error`
-			},
-			{
+			}*/ /*{
 				title: 'Last online',
 				value:
 					(item.inspect?.lastOnline
@@ -59,7 +57,7 @@
 						title: 'Error',
 						value: item.inspect?.current?.err ? `${item.inspect.current.err}` : '-'
 				  }
-				: null,
+				: null,*/
 			{
 				title: 'Last scan',
 				value: item.inspect?.current?.time
@@ -99,10 +97,14 @@
 
 	const crawlers = {
 		local: {
-			location: 'Central Europe (Prague, CZ)'
+			location: 'Prague, CZ',
+			icon: '🇨🇿',
+			region: 'Central Europe'
 		},
 		texas: {
-			location: 'North America (Texas, US)'
+			location: 'Texas, US',
+			icon: '🇺🇸',
+			region: 'North America'
 		}
 	};
 
@@ -116,7 +118,7 @@
 			//formatter: '{b}: {c} ms'
 		},
 		legend: {
-			data: Object.keys(crawlers).map((c) => crawlers[c].location)
+			data: Object.keys(crawlers).map((c) => `${crawlers[c].region} (${crawlers[c].location})`)
 		},
 		grid: {
 			left: '2%',
@@ -143,7 +145,7 @@
 		series: Object.keys(crawlers).map((crawler) => {
 			const crawlerOptions = crawlers[crawler];
 			return {
-				name: crawlerOptions.location,
+				name: `${crawlerOptions.region} (${crawlerOptions.location})`,
 				type: 'line',
 				//stack: 'ms',
 				data: item.responseTimesDay?.filter((r) => r.crawler === crawler).map((r) => r._value) || []
@@ -187,6 +189,47 @@
 			<Chart options={chartResponseTimes} />
 		</div>
 	{/if}
+
+	<div class="table-container">
+		<!-- Native Table Element -->
+		<table class="table table-hover">
+			<thead class="table-head">
+				<tr>
+					<th>Region</th>
+					<th>Location</th>
+					<th>Status</th>
+					<th>Response time</th>
+					<th>Last check</th>
+				</tr>
+			</thead>
+			<tbody class="table-body">
+				{#each Object.keys(crawlers).map((c) => [c, crawlers[c]]) as [crawlerId, crawler]}
+					<tr>
+						<td>{crawler.region}</td>
+						<td>{crawler.location} {crawler.icon}</td>
+						<td
+							>{#if item.inspect[crawlerId]?.err}
+								<i class="fa-solid fa-circle text-red-500 text-xs mr-1" /> Error:
+								<span class="code">{item.inspect[crawlerId].err}</span>
+							{:else}
+								<i class="fa-solid fa-circle text-green-500 text-xs mr-1" /> OK
+							{/if}</td
+						>
+						<td
+							>{#if item.inspect[crawlerId]?.ms}{item.inspect[crawlerId].ms}ms{:else}-{/if}</td
+						>
+						<td>
+							{#if item.inspect[crawlerId]?.time}
+								<span title={item.inspect[crawlerId].time} alt={item.inspect[crawlerId].time}>
+									{dateDistance(item.inspect[crawlerId].time)} ago
+								</span>
+							{:else}-{/if}
+						</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
 
 	<h2 class="h2">
 		<a href="/dids?q=pds:{item.host}">DIDs</a>

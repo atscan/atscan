@@ -91,7 +91,7 @@
 	{/if}
 
 	<h2 class="h2">Repository</h2>
-	{#if item.repo && !item.repo.error}
+	{#if item.repo && !item.repo.error && item.repo.root}
 		<div class="table-container">
 			<!-- Native Table Element -->
 			<table class="table table-hover">

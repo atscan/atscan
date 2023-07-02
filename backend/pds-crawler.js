@@ -142,6 +142,9 @@ async function crawl(ats) {
             $set: dbSet,
           });
         }
+        await ats.db.pds.updateOne({ url: i.url }, {
+          $set: { [`inspect.${chost}`]: inspect },
+        });
         if (ms && Number(ms) > 0) {
           await ats.writeInflux("pds_response_time", "intField", Number(ms), [
             ["pds", host],
