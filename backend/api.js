@@ -2,6 +2,7 @@ import { ATScan } from "./lib/atscan.js";
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
 import { minidenticon } from "npm:minidenticons@4.2.0";
+import _ from "npm:lodash";
 
 const ats = new ATScan();
 await ats.init();
@@ -41,6 +42,26 @@ function findDIDFed(item) {
   return ff ? ff.id : null;
 }
 
+function prepareObject(type, item) {
+  switch (type) {
+    case "pds":
+      item.host = item.url.replace(/^https?:\/\//, "");
+      item.fed = findPDSFed(item);
+      item.status = !item.inspect
+        ? "unknown"
+        : (item.inspect?.current.err ? "offline" : "online");
+
+      const respTimes = Object.keys(item.inspect).filter((k) =>
+        !["current", "lastOnline"].includes(k)
+      ).map((k) => item.inspect[k].ms || null).filter((k) => k);
+      item.responseTime = !item.inspect || item.status !== "online"
+        ? null
+        : (respTimes.length > 0 ? _.mean(respTimes) : null);
+      break;
+  }
+  return item;
+}
+
 router
   .get("/", (ctx) => {
     ctx.response.body = "ATScan API";
@@ -53,8 +74,7 @@ router
         console.error("PDS without url? ", item);
         continue;
       }
-      item.host = item.url.replace(/^https?:\/\//, "");
-      item.fed = findPDSFed(item);
+      Object.assign(item, prepareObject("pds", item));
       //item.didsCount = await ats.db.did.countDocuments({ 'pds': { $in: [ item.url ] }})
       out.push(item);
     }
@@ -72,8 +92,7 @@ router
     if (!item) {
       return ctx.response.code = 404;
     }
-    item.host = item.url.replace(/^https?:\/\//, "");
-    item.fed = findPDSFed(item);
+    Object.assign(item, prepareObject("pds", item));
 
     const query = `
       from(bucket: "ats-stats")

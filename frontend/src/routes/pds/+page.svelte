@@ -44,7 +44,7 @@
 		let base = JSON.parse(JSON.stringify(bd)); //.filter(d => d.inspect?.lastOnline)
 		base = base.map((i) => {
 			i.country = i.ip?.country;
-			i.ms = !i.inspect?.current.err ? i.inspect?.current?.ms : null;
+			//i.ms = !i.inspect?.current.err ? i.inspect?.current?.ms : null;
 			i.lastOnline = i.inspect?.lastOnline;
 			return i;
 		});

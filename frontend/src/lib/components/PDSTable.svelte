@@ -44,16 +44,8 @@
 		if (key === 'host') {
 			val = `<a href="/pds/${val}" class=""><span class="font-semibold text-lg">${val}</span></a>`;
 		}
-		if (key === 'ms') {
-			val = row.inspect?.current.err
-				? `<a href="${row.url}/xrpc/com.atproto.server.describeServer" target="_blank" title="${row.inspect.current.err}" class="anchor">error</a>`
-				: row.inspect?.current.ms
-				? `<a href="${
-						row.url
-				  }/xrpc/com.atproto.server.describeServer" target="_blank" class="anchor">${
-						row.inspect.current.ms + 'ms'
-				  }</a>`
-				: '-';
+		if (key === 'responseTime') {
+			val = row.responseTime ? '~' + row.responseTime + 'ms' : '-';
 		}
 		if (key === 'location') {
 			val =
@@ -80,7 +72,11 @@
 		}
 		if (key === 'lastOnline' && row.inspect) {
 			val = `<span class="text-xs">${
-				row.inspect?.lastOnline ? dateDistance(row.inspect?.lastOnline) + ' ago' : '-'
+				row.inspect.lastOnline && !row.inspect?.current?.err
+					? 'now'
+					: row.inspect.lastOnline
+					? dateDistance(row.inspect.lastOnline) + ' ago'
+					: '-'
 			}</span>`;
 		}
 		if (key === 'host_raw') {
@@ -106,12 +102,12 @@
 			['DIDs', 'didsCount'],
 			['Location', 'country'],
 			['PLCs (User Domains)', 'plcs'],
-			['Resp. time', 'ms'],
+			['Resp. time', 'responseTime'],
 			['Last Online', 'lastOnline']
 		],
 		body: customTableMapper(
 			sourceData,
-			['fed', 'status', 'host', 'didsCount', 'location', 'plcs', 'ms', 'lastOnline'],
+			['fed', 'status', 'host', 'didsCount', 'location', 'plcs', 'responseTime', 'lastOnline'],
 			tableMap
 		),
 		meta: customTableMapper(sourceData, ['host_raw', 'url'], tableMap)

@@ -1,12 +1,7 @@
 <script>
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import DIDTable from '$lib/components/DIDTable.svelte';
-	import {
-		formatNumber,
-		dateDistance,
-		getFlagEmoji,
-		getPDSStatus
-	} from '$lib/utils.js';
+	import { formatNumber, dateDistance, getFlagEmoji, getPDSStatus } from '$lib/utils.js';
 	import SourceSection from '$lib/components/SourceSection.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
 	import Chart from '$lib/components/Chart.svelte';
@@ -33,6 +28,12 @@
 				value: item.inspect?.current?.data?.availableUserDomains?.join(', ') || 'n/a'
 			},
 			{
+				title: 'Invite code required?',
+				value: item.inspect?.current?.data?.inviteCodeRequired
+					? 'Yes'
+					: 'No - open registrations' || 'n/a'
+			},
+			{
 				title: 'DID count',
 				value: `${formatNumber(item.didsCount)} (<a href="/dids?q=pds:${
 					item.host
@@ -44,20 +45,20 @@
 				value: item.inspect?.current?.ms
 					? item.inspect?.current?.ms + 'ms (from Central Europe)'
 					: `Error`
-			}*/ /*{
+			}*/ {
 				title: 'Last online',
 				value:
 					(item.inspect?.lastOnline
 						? `${dateDistance(item.inspect?.lastOnline)} ago (${item.inspect?.lastOnline})`
 						: 'never') +
 					` (<a href="${item.url}/xrpc/com.atproto.server.describeServer" class="anchor">inspect</a>)`
-			},
+			} /*
 			item.inspect?.current?.err
 				? {
 						title: 'Error',
 						value: item.inspect?.current?.err ? `${item.inspect.current.err}` : '-'
 				  }
-				: null,*/
+				: null,*/,
 			{
 				title: 'Last scan',
 				value: item.inspect?.current?.time
@@ -98,21 +99,18 @@
 	const crawlers = {
 		local: {
 			location: 'Prague, CZ',
-			icon: '🇨🇿',
+			country: 'cz',
 			region: 'Central Europe'
 		},
 		texas: {
 			location: 'Texas, US',
-			icon: '🇺🇸',
+			country: 'us',
 			region: 'North America'
 		}
 	};
 
 	$: chartResponseTimes = {
-		animationDuration: 500,
-		title: {
-			text: `${item.host} response times in last 24 hours`
-		},
+		animationDuration: 250,
 		tooltip: {
 			trigger: 'axis'
 			//formatter: '{b}: {c} ms'
@@ -206,7 +204,14 @@
 				{#each Object.keys(crawlers).map((c) => [c, crawlers[c]]) as [crawlerId, crawler]}
 					<tr>
 						<td>{crawler.region}</td>
-						<td>{crawler.location} {crawler.icon}</td>
+						<td
+							><img
+								src="/cc/{crawler.country.toLowerCase()}.png"
+								alt={crawler.country}
+								title={crawler.country}
+								class="inline-block mr-2"
+							/>{crawler.location}</td
+						>
 						<td
 							>{#if item.inspect[crawlerId]?.err}
 								<i class="fa-solid fa-circle text-red-500 text-xs mr-1" /> Error:
