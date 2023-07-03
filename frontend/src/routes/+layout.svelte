@@ -15,6 +15,7 @@
 	import { Drawer, drawerStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { connect, StringCodec, JSONCodec } from 'nats.ws';
+	import { i18n } from '$lib/i18n.js';
 
 	export let data;
 
@@ -127,7 +128,7 @@
 							href="/dids"
 							class="btn hover:variant-soft-primary"
 							class:bg-primary-active-token={$page.url.pathname.startsWith('/dids')}
-							><span>DIDs</span></a
+							><span>{$i18n.t('DIDs')}</span></a
 						>
 					</div>
 					<div class="relative hidden lg:block">
@@ -135,7 +136,7 @@
 							href="/pds"
 							class="btn hover:variant-soft-primary"
 							class:bg-primary-active-token={$page.url.pathname.startsWith('/pds')}
-							><span>PDS Instances</span></a
+							><span>{$i18n.t('PDS Instances')}</span></a
 						>
 					</div>
 					<div class="relative hidden lg:block">

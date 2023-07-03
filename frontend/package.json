@@ -38,6 +38,8 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"js-yaml": "^4.1.0"
+		"i18next": "^23.2.6",
+		"js-yaml": "^4.1.0",
+		"svelte-i18next": "^2.0.0"
 	}
 }
