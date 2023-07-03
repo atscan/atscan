@@ -9,7 +9,7 @@ import {
 import "https://deno.land/std@0.192.0/dotenv/load.ts";
 
 const WAIT = 1000 * 60 * 2;
-const TIMEOUT = 5000;
+const TIMEOUT = 2500;
 
 const nc = await connect({
   servers: Deno.env.get("NATS_SERVERS"),
