@@ -117,27 +117,8 @@
 			<table class="table table-hover">
 				<tbody>
 					<tr>
-						<th class="text-right">Root</th>
+						<th class="text-right">Head</th>
 						<td>{item.repo.root}</td>
-					</tr>
-					<tr>
-						<th class="text-right">Up to date?</th>
-						<td
-							>{#if current}
-								{#if current.commits.length === 0}
-									<i class="fa-solid fa-circle-check text-green-500 mr-1" /> Yes
-								{:else}
-									<i class="fa-solid fa-circle-xmark text-red-500 mr-1" /> No, {current.commits
-										.length} new commits
-								{/if}
-							{:else}
-								{#if currentError}
-									Cannot get current status :(
-								{:else}
-									<span class="italic">Checking current status ..</span>
-								{/if}
-							{/if}
-						</td>
 					</tr>
 					<tr>
 						<th class="text-right">Signing Key</th>
@@ -145,7 +126,12 @@
 					</tr>
 					<tr>
 						<th class="text-right">Commits</th>
-						<td>{formatNumber(item.repo.commits)}</td>
+						<td
+							>{formatNumber(item.repo.commits)}
+							<div class="inline-block ml-3">
+								<i class="fa-solid fa-check text-green-500" /> <span class="text-sm">Verified</span>
+							</div></td
+						>
 					</tr>
 					<tr>
 						<th class="text-right">Size</th>
@@ -165,14 +151,33 @@
 					<tr>
 						<th class="text-right">Collections</th>
 						<td
-							>{Object.keys(item.repo?.collections)
-								.map((c) => `${formatNumber(item.repo.collections[c])} ${c}`)
-								.join(', ')}</td
+							>{#if item.repo?.collections.length > 0}{Object.keys(item.repo?.collections)
+									.map((c) => `${formatNumber(item.repo.collections[c])} ${c}`)
+									.join(', ')}{:else}<i>No items</i>{/if}</td
 						>
 					</tr>
 					<tr>
-						<th class="text-right">Last indexed</th>
+						<th class="text-right">Indexed</th>
 						<td>{dateDistance(item.repo?.time)} ago</td>
+					</tr>
+					<tr>
+						<th class="text-right">Up to date?</th>
+						<td
+							>{#if current}
+								{#if current.commits.length === 0}
+									<i class="fa-solid fa-circle-check text-green-500 mr-1" /> Yes
+								{:else}
+									<i class="fa-solid fa-circle-xmark text-red-500 mr-1" /> No, {current.commits
+										.length} new commits
+								{/if}
+							{:else}
+								{#if currentError}
+									Cannot get current status :(
+								{:else}
+									<span class="italic">Checking current status ..</span>
+								{/if}
+							{/if}
+						</td>
 					</tr>
 				</tbody>
 			</table>
