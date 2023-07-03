@@ -110,7 +110,7 @@
 		tokyo: {
 			location: 'Tokyo, JP',
 			country: 'jp',
-			region: 'Southeast Asia'
+			region: 'East Asia'
 		}
 	};
 
@@ -198,11 +198,11 @@
 		<table class="table table-hover">
 			<thead class="table-head">
 				<tr>
-					<th>Region</th>
-					<th>Location</th>
-					<th>Status</th>
-					<th>Response time</th>
-					<th>Last check</th>
+					<th class="text-sm">Region</th>
+					<th class="text-sm">Location</th>
+					<th class="text-sm">Status</th>
+					<th class="text-sm">Response time</th>
+					<th class="text-sm">Last check</th>
 				</tr>
 			</thead>
 			<tbody class="table-body">
