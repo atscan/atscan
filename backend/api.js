@@ -51,9 +51,12 @@ function prepareObject(type, item) {
         ? "unknown"
         : (item.inspect?.current.err ? "offline" : "online");
 
-      const respTimes = Object.keys(item.inspect).filter((k) =>
-        !["current", "lastOnline"].includes(k)
-      ).map((k) => item.inspect[k].ms || null).filter((k) => k);
+      const respTimes = item.inspect
+        ? Object.keys(item.inspect).filter((k) =>
+          !["current", "lastOnline"].includes(k)
+        ).map((k) => item.inspect[k].ms || null).filter((k) => k)
+        : [];
+
       item.responseTime = !item.inspect || item.status !== "online"
         ? null
         : (respTimes.length > 0 ? _.mean(respTimes) : null);
@@ -115,6 +118,7 @@ router
       lastMod: { key: "lastMod" },
       pds: { key: "pds" },
       size: { key: "repo.size" },
+      commits: { key: "repo.commits" },
     };
 
     let inputSort = ctx.request.url.searchParams.get("sort");

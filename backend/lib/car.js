@@ -30,9 +30,14 @@ export async function readRaw(data) {
 export async function read(data, did, signingKey) {
   const { root, blocks } = await readRaw(data);
 
+  console.log(`read done: ${did}`)
+
   const storage = new MemoryBlockstore(blocks);
   const checkout = await verifyCheckout(storage, root, did, signingKey);
+  console.log(`checkout done: ${did}`)
+  
   const history = await verifyFullHistory(storage, root, did, signingKey);
+  console.log(`fullHistory done: ${did}`)
 
   return {
     root,

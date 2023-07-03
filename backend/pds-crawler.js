@@ -20,6 +20,7 @@ console.log(`connected to ${nc.getServer()}`);
 const hosts = {
   local: {},
   texas: {},
+  tokyo: {},
 };
 
 async function crawlUrl(url, host = "local") {

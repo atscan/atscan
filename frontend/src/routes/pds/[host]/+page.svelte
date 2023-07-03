@@ -103,9 +103,14 @@
 			region: 'Central Europe'
 		},
 		texas: {
-			location: 'Texas, US',
+			location: 'Dallas, TX, US',
 			country: 'us',
 			region: 'North America'
+		},
+		tokyo: {
+			location: 'Tokyo, JP',
+			country: 'jp',
+			region: 'Southeast Asia'
 		}
 	};
 
@@ -216,6 +221,8 @@
 							>{#if item.inspect[crawlerId]?.err}
 								<i class="fa-solid fa-circle text-red-500 text-xs mr-1" /> Error:
 								<span class="code">{item.inspect[crawlerId].err}</span>
+							{:else if !item.inspect[crawlerId]}
+								<i class="fa-solid fa-circle text-gray-500 text-xs mr-1" /> Unknown
 							{:else}
 								<i class="fa-solid fa-circle text-green-500 text-xs mr-1" /> OK
 							{/if}</td

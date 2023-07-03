@@ -8,6 +8,7 @@ async function index(ats) {
     const didsCount = await ats.db.did.countDocuments({
       "pds": { $in: [pds.url] },
     });
+    const host = pds.url.replace(/^https?:\/\//, "");
 
     const stages = [
       { $match: { pds: { $in: [pds.url] } } },
@@ -22,9 +23,13 @@ async function index(ats) {
     ];
     const sizeRes = await ats.db.did.aggregate(stages).toArray();
     const size = sizeRes[0].sum;
-    //console.log(`${pds.url}: ${size}`);
 
     await ats.db.pds.updateOne({ url: pds.url }, { $set: { didsCount, size } });
+    await ats.writeInflux("pds_dids_count", "intField", didsCount, [[
+      "pds",
+      host,
+    ]]);
+    await ats.writeInflux("pds_size", "intField", size, [["pds", host]]);
   }
   console.log("indexer round finished");
   //console.log(await whoiser("dev.otaso-sky.blue"));

@@ -10,6 +10,7 @@
 		getDIDProfileUrl,
 		filesize
 	} from '$lib/utils.js';
+	import { format } from 'echarts';
 	export let sourceData;
 	export let data;
 
@@ -81,6 +82,9 @@
 		if (key === 'url') {
 			val = `/${row.did}`;
 		}
+		if (key === 'commits') {
+			val = row.repo?.commits ? formatNumber(row.repo.commits) : '-';
+		}
 		if (key === 'size') {
 			val =
 				'<div class="text-lg">' +
@@ -97,10 +101,17 @@
 	}
 	$: tableSimple = {
 		// A list of heading labels.
-		head: ['', ['DID', 'did'], ['PDS (PLC)', 'pds'], ['Repo size', 'size'], ['Updated', 'lastMod']],
+		head: [
+			'',
+			['DID', 'did'],
+			['PDS (PLC)', 'pds'],
+			['Repo size', 'size'],
+			['Commits', 'commits'],
+			['Updated', 'lastMod']
+		],
 		body: customTableMapper(
 			sourceData || [],
-			['img', 'did', 'srcHost', 'size', 'lastMod'],
+			['img', 'did', 'srcHost', 'size', 'commits', 'lastMod'],
 			tableMap
 		),
 		meta: customTableMapper(sourceData || [], ['did_raw', 'url'], tableMap)

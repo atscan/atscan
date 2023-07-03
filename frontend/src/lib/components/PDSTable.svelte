@@ -46,7 +46,7 @@
 			val = `<a href="/pds/${val}" class=""><span class="font-semibold text-lg">${val}</span></a>`;
 		}
 		if (key === 'responseTime') {
-			val = row.responseTime ? '~' + row.responseTime + 'ms' : '-';
+			val = row.responseTime ? '~' + Math.round(row.responseTime) + 'ms' : '-';
 		}
 		if (key === 'location') {
 			val =
