@@ -6,6 +6,7 @@
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import PDSTable from '$lib/components/PDSTable.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
+	import { onMount } from 'svelte';
 
 	export let data;
 
@@ -54,6 +55,25 @@
 			link: `/dids?q=fed:${item.fed}`
 		});
 	}
+
+	let current;
+	let currentError;
+
+	onMount(async () => {
+		if (item.repo) {
+			try {
+				const res = await fetch(
+					`${item.pds[0]}/xrpc/com.atproto.sync.getCommitPath?did=${item.did}&earliest=${item.repo.root}`
+				);
+				current = await res.json();
+				if (current.commits[current.commits.length - 1] === item.repo.root) {
+					current.commits = [];
+				}
+			} catch (e) {
+				currentError = e.message;
+			}
+		}
+	});
 </script>
 
 <BasicPage {data} title={item.did} noHeader="true" {breadcrumb}>
@@ -99,6 +119,25 @@
 					<tr>
 						<th class="text-right">Root</th>
 						<td>{item.repo.root}</td>
+					</tr>
+					<tr>
+						<th class="text-right">Up to date?</th>
+						<td
+							>{#if current}
+								{#if current.commits.length === 0}
+									<i class="fa-solid fa-circle-check text-green-500 mr-1" /> Yes
+								{:else}
+									<i class="fa-solid fa-circle-xmark text-red-500 mr-1" /> No, {current.commits
+										.length} new commits
+								{/if}
+							{:else}
+								{#if currentError}
+									Cannot get current status :(
+								{:else}
+									<span class="italic">Checking current status ..</span>
+								{/if}
+							{/if}
+						</td>
 					</tr>
 					<tr>
 						<th class="text-right">Signing Key</th>
