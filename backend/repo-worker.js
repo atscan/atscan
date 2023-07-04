@@ -11,6 +11,6 @@ async function processJob(job) {
   return Promise.resolve();
 }
 
-const worker = new Worker("repo-inspect", processJob, {
-  connection: { host: "localhost", port: "6379" },
+const worker = new Worker("repo-snapshot", processJob, {
+  connection: ats.redisConnectionOptions(),
 });

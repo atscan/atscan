@@ -41,7 +41,7 @@ export async function read(data, did, signingKey, job = null) {
     await job.log(`checkout done: ${did}`);
     await job.updateProgress(60);
   }
-  
+
   const history = await verifyFullHistory(storage, root, did, signingKey);
   if (job) {
     await job.log(`fullHistory done: ${did}`);

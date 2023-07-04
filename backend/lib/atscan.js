@@ -1,31 +1,40 @@
 //import { Bson, MongoClient } from "https://deno.land/x/mongo@v0.31.2/mod.ts";
-import { parse, stringify } from "https://deno.land/std@0.184.0/yaml/mod.ts";
+import { load as envLoad } from "https://deno.land/std@0.192.0/dotenv/mod.ts";
+import { parse, stringify } from "https://deno.land/std@0.192.0/yaml/mod.ts";
 import { MongoClient } from "npm:mongodb";
-import "https://deno.land/std@0.192.0/dotenv/load.ts";
-import {InfluxDB} from 'npm:@influxdata/influxdb-client'
-
-const ATSCAN_ECOSYSTEM = "https://mirror.ecosystem.atscan.net/index.json";
+import { InfluxDB } from "npm:@influxdata/influxdb-client";
+import { makeQueues } from "./queues.js";
 
 export class ATScan {
   constructor(opts = {}) {
     this.verbose = opts.verbose;
     this.debug = opts.debug;
+    this.enableQueues = opts.enableQueues || false;
+    console.log(this.enableQueues);
   }
 
   async init() {
+    this.env = await envLoad();
     await this.ecosystemLoad();
-    const influxConfig = {url: Deno.env.get('INFLUXDB_HOST'), token: Deno.env.get('INFLUXDB_TOKEN')}
+    const influxConfig = {
+      url: this.env.INFLUXDB_HOST,
+      token: this.env.INFLUXDB_TOKEN,
+    };
     this.influx = new InfluxDB(influxConfig);
-    this.influxQuery = this.influx.getQueryApi(Deno.env.get('INFLUXDB_ORG'))
-    this.client = new MongoClient(Deno.env.get("MONGODB_URL"));
+    this.influxQuery = this.influx.getQueryApi(this.env.INFLUXDB_ORG);
+    this.client = new MongoClient(this.env.MONGODB_URL);
     await this.client.connect();
-    console.log(`Connected to MongoDB: ${Deno.env.get("MONGODB_URL")}`);
     this.dbRaw = this.client.db("test");
     this.db = {
       did: this.dbRaw.collection("did"),
       pds: this.dbRaw.collection("pds"),
       meta: this.dbRaw.collection("meta"),
     };
+    console.log(`Connected to MongoDB: ${this.env.MONGODB_URL}`);
+    if (this.enableQueues) {
+      this.queues = await makeQueues(this);
+      console.log(`Queues initialized: ${Object.keys(this.queues).join(", ")}`);
+    }
   }
 
   async processPlcExport(plc, after = null) {
@@ -130,28 +139,40 @@ export class ATScan {
   }
 
   async ecosystemLoad() {
-    const res = await fetch(ATSCAN_ECOSYSTEM);
+    const res = await fetch(this.env.ATSCAN_ECOSYSTEM_URL);
     this.ecosystem = await res.json();
-    console.log(`Ecosystem updated: ${ATSCAN_ECOSYSTEM}`);
+    console.log(`Ecosystem updated: ${this.env.ATSCAN_ECOSYSTEM_URL}`);
   }
   startDaemon() {
     console.log("Starting daemon ..");
     const ecosInt = setInterval(() => this.ecosystemLoad(), 30 * 1000);
   }
 
-  async writeInflux (name, type, value, tags = []) {
-    const point = `${name},${tags.map(t => t.join('=')).join(',')} value=${value} ${Date.now()}`;
-    const resp = await fetch(`${Deno.env.get('INFLUXDB_HOST')}/api/v2/write?org=${Deno.env.get('INFLUXDB_ORG')}&bucket=${Deno.env.get('INFLUXDB_BUCKET')}&precision=ms`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Token ${Deno.env.get('INFLUXDB_TOKEN')}`
+  async writeInflux(name, type, value, tags = []) {
+    const point = `${name},${
+      tags.map((t) => t.join("=")).join(",")
+    } value=${value} ${Date.now()}`;
+    const resp = await fetch(
+      `${this.env.INFLUXDB_HOST}/api/v2/write?org=${this.env.INFLUXDB_ORG}&bucket=${this.env.INFLUXDB_BUCKET}&precision=ms`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Token ${this.env.INFLUXDB_TOKEN}`,
+        },
+        body: point,
       },
-      body: point
-    })
+    );
     if (resp.status > 299) {
-      console.error('influx error: '+resp.status, Deno.env.get('INFLUXDB_TOKEN'))
-      console.error(await resp.json())
+      console.error("influx error: " + resp.status, this.env.INFLUXDB_TOKEN);
+      console.error(await resp.json());
     }
-    return true
+    return true;
+  }
+
+  redisConnectionOptions() {
+    return {
+      host: this.env.REDIS_HOST || "localhost",
+      port: this.env.REDIS_PORT || "6379",
+    };
   }
 }

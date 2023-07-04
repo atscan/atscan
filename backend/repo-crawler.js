@@ -1,38 +1,39 @@
 import { pooledMap } from "https://deno.land/std/async/mod.ts";
 import { ATScan } from "./lib/atscan.js";
 import _ from "npm:lodash";
-import { Queue } from "npm:bullmq";
 
-const repoQueue = new Queue("repo-inspect", {
-  connection: { host: "localhost", port: "6379" },
-});
-const counters = {};
+const CONCURRENCY = 4;
 
-async function processPDSRepos(ats, repos) {
+const counters = { total: 0 };
+
+async function processPDSRepos(ats, repos, item) {
+  let count = 0;
+  const objs = await ats.db.did.find({
+    did: { $in: repos.repos.map((r) => r.did) },
+  }).toArray();
   for (const repo of repos.repos) {
-    const did = await ats.db.did.findOne({ did: repo.did });
-    if (!did) {
+    const didObj = objs.find((d) => d.did === repo.did);
+    if (!didObj) {
       console.error(`DID ${repo.did} not exists?? (!!)`);
       continue;
     }
-    console.log(
+    /*console.log(
       repo.did,
       repo.head,
       did.repo?.root,
       repo.head === did.repo?.root,
-    );
-    if (repo.head !== did.repo?.root) {
-      await repoQueue.add(repo.did, did, { priority: repo.head ? 10 : 5 });
+    );*/
+    if (repo.head !== didObj.repo?.root) {
+      await ats.queues.repoSnapshot.add(repo.did, didObj, {
+        //priority: 1,
+        jobId: repo.did,
+      });
+      count++;
     }
   }
+  return { count };
 }
 async function getPDSRepos(item, cursor = null) {
-  if (!counters[item.url]) {
-    counters[item.url] = 1;
-  } else {
-    counters[item.url]++;
-  }
-  console.log(`Updating PDS=${item.url} [${counters[item.url]}] ..`);
   const reposUrl = item.url + "/xrpc/com.atproto.sync.listRepos?limit=1000" +
     (cursor ? "&cursor=" + cursor : "");
   const reposRes = await fetch(reposUrl);
@@ -45,9 +46,20 @@ async function getPDSRepos(item, cursor = null) {
 }
 
 async function traversePDSRepos(ats, item, cursor = null) {
+  if (!counters[item.url]) {
+    counters[item.url] = 1;
+  } else {
+    counters[item.url]++;
+  }
   const repos = await getPDSRepos(item, cursor);
   if (repos?.repos) {
-    await processPDSRepos(ats, repos);
+    const { count } = await processPDSRepos(ats, repos, item);
+    counters.total += count;
+    console.log(
+      `total=${counters.total} [PDS=${item.url} page=${
+        counters[item.url]
+      } count=${count}]`,
+    );
 
     if (repos.repos.length === 1000) {
       await traversePDSRepos(ats, item, repos.cursor);
@@ -57,7 +69,7 @@ async function traversePDSRepos(ats, item, cursor = null) {
 
 async function crawlNew(ats) {
   const pds = await ats.db.pds.find({}).toArray();
-  const results = pooledMap(4, _.shuffle(pds), async (item) => {
+  const results = pooledMap(CONCURRENCY, _.shuffle(pds), async (item) => {
     if (!item.inspect.current || item.inspect.current.err) {
       return null;
     }
@@ -85,7 +97,7 @@ if (Deno.args[0] === "daemon") {
   const wait = 60 * 15;
 
   console.log("Initializing ATScan ..");
-  const ats = new ATScan();
+  const ats = new ATScan({ enableQueues: true });
   ats.debug = true;
   await ats.init();
   console.log("repo-crawler daemon started");
@@ -97,7 +109,7 @@ if (Deno.args[0] === "daemon") {
   console.log(`Processing events [wait=${wait}s] ..`);
   setInterval(() => crawl(ats), wait * 1000);
 } else {
-  const ats = new ATScan({ debug: true });
+  const ats = new ATScan({ debug: true, enableQueues: true });
   await ats.init();
   await crawlNew(ats);
   Deno.exit();
