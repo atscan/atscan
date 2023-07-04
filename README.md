@@ -8,12 +8,15 @@ The current version is hosted at [atscan.net](https://atscan.net). You can follo
 
 ## Technology stack
 
+### Infrastructure
+- [NATS](https://nats.io/) socket messaging
+- [MongoDB](https://www.mongodb.com/) database
+- [InfluxDB](https://github.com/influxdata/influxdb) time series platform
+- [BullMQ](https://bullmq.io/) job processing
+
 ### Backend
 - [Deno](https://deno.land/) JavaScript runtime
-- [MongoDB](https://www.mongodb.com/) database
 - [oak](https://github.com/oakserver/oak) HTTP middleware framework
-- [NATS](https://nats.io/) messaging for sockets
-- [InfluxDB](https://github.com/influxdata/influxdb) time series platform
 - [Ajv](https://ajv.js.org/) JSON Schema validator
 
 ### Frontend
