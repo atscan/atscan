@@ -27,17 +27,26 @@ export async function readRaw(data) {
   };
 }
 
-export async function read(data, did, signingKey) {
+export async function read(data, did, signingKey, job = null) {
   const { root, blocks } = await readRaw(data);
 
-  console.log(`read done: ${did}`)
+  if (job) {
+    await job.log(`read done: ${did}`);
+    await job.updateProgress(35);
+  }
 
   const storage = new MemoryBlockstore(blocks);
   const checkout = await verifyCheckout(storage, root, did, signingKey);
-  console.log(`checkout done: ${did}`)
+  if (job) {
+    await job.log(`checkout done: ${did}`);
+    await job.updateProgress(60);
+  }
   
   const history = await verifyFullHistory(storage, root, did, signingKey);
-  console.log(`fullHistory done: ${did}`)
+  if (job) {
+    await job.log(`fullHistory done: ${did}`);
+    await job.updateProgress(90);
+  }
 
   return {
     root,

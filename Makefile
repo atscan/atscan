@@ -21,7 +21,10 @@ api-ws:
 	deno run --unstable --allow-net --allow-read --allow-env --allow-sys ./backend/api-ws.js
 
 repo-crawler:
-	deno run --unstable --allow-net --allow-read --allow-write --allow-env --allow-sys ./backend/repo-crawler.js
+	deno run --unstable --allow-net --allow-read --allow-write --allow-env --allow-sys --allow-ffi ./backend/repo-crawler.js
+
+repo-worker:
+	deno run --unstable --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-sys ./backend/repo-worker.js
 
 fe-rebuild:
 	cd frontend && npm run build && pm2 restart atscan-fe

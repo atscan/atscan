@@ -42,5 +42,16 @@ module.exports = {
     interpreterArgs: "run --unstable --allow-net --allow-read --allow-env --allow-sys",
     //watch: true,
     ignore_watch: [ 'frontend' ],
+    
+  }, {
+    name: "atscan-worker",
+    script: "./backend/repo-worker.js",
+    interpreter: "deno",
+    interpreterArgs: "run --unstable --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-sys ./backend/repo-worker.js",
+    instances: 6,
+  }, {
+    name: "bull-ui",
+    script: "index.js",
+    cwd: "./backend/bull-ui"
   }],
 };

@@ -1,17 +1,12 @@
-import { ensureDir } from "https://deno.land/std@0.192.0/fs/ensure_dir.ts";
-import { join } from "https://deno.land/std@0.192.0/path/posix.ts";
 import { pooledMap } from "https://deno.land/std/async/mod.ts";
-import * as fsize from "npm:filesize";
 import { ATScan } from "./lib/atscan.js";
-import { inspect } from "./lib/car.js";
-import { timeout } from "./lib/utils.js";
 import _ from "npm:lodash";
-import { filesize as _filesize } from "npm:filesize";
+import { Queue } from "npm:bullmq";
 
-const filesize = fsize.filesize;
-
-const DB_PATH = "./backend/db/repo";
-await ensureDir(DB_PATH);
+const repoQueue = new Queue("repo-inspect", {
+  connection: { host: "localhost", port: "6379" },
+});
+const counters = {};
 
 async function processPDSRepos(ats, repos) {
   for (const repo of repos.repos) {
@@ -27,12 +22,17 @@ async function processPDSRepos(ats, repos) {
       repo.head === did.repo?.root,
     );
     if (repo.head !== did.repo?.root) {
-      await saveRepo(ats, did);
+      await repoQueue.add(repo.did, did, { priority: repo.head ? 10 : 5 });
     }
   }
 }
 async function getPDSRepos(item, cursor = null) {
-  console.log(`Updating PDS=${item.url} ..`);
+  if (!counters[item.url]) {
+    counters[item.url] = 1;
+  } else {
+    counters[item.url]++;
+  }
+  console.log(`Updating PDS=${item.url} [${counters[item.url]}] ..`);
   const reposUrl = item.url + "/xrpc/com.atproto.sync.listRepos?limit=1000" +
     (cursor ? "&cursor=" + cursor : "");
   const reposRes = await fetch(reposUrl);
@@ -65,99 +65,6 @@ async function crawlNew(ats) {
   });
 
   for await (const _ of results) {}
-}
-
-async function saveRepo(ats, didInfo) {
-  if (didInfo.skipRepo) {
-    return null;
-  }
-
-  const did = didInfo.did;
-  const signingKey = didInfo.revs[didInfo.revs.length - 1].operation
-    .verificationMethods?.atproto;
-
-  if (!signingKey) {
-    await ats.db.did.updateOne({ did }, {
-      $set: { repo: { error: "no signing key", time: new Date() } },
-    });
-    return;
-  }
-  const pds = didInfo.pds[0];
-  //console.log(`[${did}@${pds}] Getting repo ..`);
-
-  // fetch remote repo
-  const url = `${pds}/xrpc/com.atproto.sync.getRepo?did=${did}`;
-  console.log(url);
-  let repoRes;
-  try {
-    [repoRes] = await timeout(20 * 1000, fetch(url));
-  } catch (e) {
-    repoRes = { ok: false };
-    console.error(e);
-
-    await ats.db.did.updateOne({ did }, {
-      $set: { repo: { error: e.message, time: new Date() } },
-    });
-    return;
-  }
-  if (!repoRes.ok) {
-    let message = null;
-    if ([403, 500].includes(repoRes.status)) {
-      let err;
-      try {
-        err = await repoRes.json();
-      } catch {}
-      message = err?.message;
-    }
-    console.error(url, message);
-    await ats.db.did.updateOne({ did }, {
-      $set: { repo: { error: message, time: new Date() } },
-    });
-    return;
-  }
-  //console.log(`[${did}@${pds}] Inspecting CAR ..`);
-  const data = new Uint8Array(await repoRes.arrayBuffer());
-  console.log(`downloaded: ${url} [${filesize(data.length)}]`);
-  let repo;
-  try {
-    repo = await inspect(data, did, signingKey);
-  } catch (e) {
-    console.error(e);
-    await ats.db.did.updateOne({ did }, {
-      $set: { repo: { error: e.message, time: new Date() } },
-    });
-    return;
-  }
-
-  const carFn = join(DB_PATH, `${did}.car`);
-  await Deno.writeFile(carFn, data);
-  //console.log(`[${did}@${pds}] File written: ${carFn}`);
-
-  const indexFn = join(DB_PATH, `${did}.json`);
-  await Deno.writeTextFile(
-    indexFn,
-    JSON.stringify(
-      { did, signingKey, pds, root: repo.root, commits: repo.commits },
-      null,
-      2,
-    ),
-  );
-  //console.log(`[${did}@${pds}] File written: ${indexFn}`);
-  console.log(
-    `[${did}@${pds}] displayName=${
-      JSON.stringify(repo.profile?.displayName)
-    } [${filesize(repo.size)}]`,
-  );
-  /*console.log(
-    `[${did}@${pds}] Done [${
-      Object.keys(repo.collections).map(
-        (c) => [c + ":" + repo.collections[c]],
-      ).join(", ")
-    }]`,
-  );*/
-
-  await ats.db.did.updateOne({ did }, { $set: { repo } });
-  //console.log(out)
 }
 
 async function crawl(ats) {
