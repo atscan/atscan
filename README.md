@@ -12,12 +12,13 @@ The current version is hosted at [atscan.net](https://atscan.net). You can follo
 - [NATS](https://nats.io/) socket messaging
 - [MongoDB](https://www.mongodb.com/) database
 - [InfluxDB](https://github.com/influxdata/influxdb) time series platform
-- [BullMQ](https://bullmq.io/) job processing
+- [Redis](https://redis.io/) in-memory data store
 
 ### Backend
 - [Deno](https://deno.land/) JavaScript runtime
 - [oak](https://github.com/oakserver/oak) HTTP middleware framework
 - [Ajv](https://ajv.js.org/) JSON Schema validator
+- [BullMQ](https://bullmq.io/) job processing
 
 ### Frontend
 - [Node.js](https://nodejs.org/en) JavaScript runtime
