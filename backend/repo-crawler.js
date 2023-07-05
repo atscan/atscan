@@ -1,5 +1,6 @@
 import { pooledMap } from "https://deno.land/std/async/mod.ts";
 import { ATScan } from "./lib/atscan.js";
+import { differenceInMinutes } from "npm:date-fns";
 import _ from "npm:lodash";
 
 const CONCURRENCY = 4;
@@ -17,13 +18,19 @@ async function processPDSRepos(ats, repos, item) {
       console.error(`DID ${repo.did} not exists?? (!!)`);
       continue;
     }
-    /*console.log(
-      repo.did,
-      repo.head,
-      did.repo?.root,
-      repo.head === did.repo?.root,
-    );*/
+
     if (repo.head !== didObj.repo?.root) {
+      // ignore dids which was updated in last 20h hours
+      if (didObj.repo) {
+        const diff = differenceInMinutes(
+          new Date(),
+          new Date(didObj.repo.time),
+        );
+        const size = didObj.repo.size || 0;
+        if (diff < (20 * 60) && size > 20000) {
+          continue;
+        }
+      }
       await ats.queues.repoSnapshot.add(repo.did, didObj, {
         //priority: 1,
         jobId: repo.did,

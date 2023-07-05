@@ -35,19 +35,28 @@ module.exports = {
       PORT: 4000,
     }
   }, {
-    name: "atscan-api",
+    name: "atscan-api-master",
     script: "./backend/api.js",
     //args : "daemon",
     interpreter: "deno",
     interpreterArgs: "run --unstable --allow-net --allow-read --allow-env --allow-sys",
-    //watch: true,
-    ignore_watch: [ 'frontend' ],
-    
+    env: {
+      PORT: 6677
+    }
+  }, {
+    name: "atscan-api-slave",
+    script: "./backend/api.js",
+    //args : "daemon",
+    interpreter: "deno",
+    interpreterArgs: "run --unstable --allow-net --allow-read --allow-env --allow-sys",
+    env: {
+      PORT: 6678
+    }
   }, {
     name: "atscan-worker",
     script: "./backend/repo-worker.js",
-    interpreter: "deno",
-    interpreterArgs: "run --unstable --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-sys ./backend/repo-worker.js",
+    interpreter: "mullvad-exclude",
+    interpreterArgs: "deno run --unstable --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-sys ./backend/repo-worker.js",
     instances: 6,
   }, {
     name: "bull-ui",

@@ -1,21 +1,9 @@
 import { ATScan } from "./lib/atscan.js";
 import { pooledMap } from "https://deno.land/std/async/mod.ts";
 import { timeout } from "./lib/utils.js";
-import {
-  connect,
-  JSONCodec,
-  StringCodec,
-} from "https://deno.land/x/nats/src/mod.ts";
-import "https://deno.land/std@0.192.0/dotenv/load.ts";
 
 const WAIT = 1000 * 60 * 2;
 const TIMEOUT = 2500;
-
-const nc = await connect({
-  servers: Deno.env.get("NATS_SERVERS"),
-});
-const jc = JSONCodec();
-console.log(`connected to ${nc.getServer()}`);
 
 const hosts = {
   local: {},
@@ -23,7 +11,7 @@ const hosts = {
   tokyo: {},
 };
 
-async function crawlUrl(url, host = "local") {
+async function crawlUrl(ats, url, host = "local") {
   if (host === "local") {
     try {
       const [, ms] = await timeout(
@@ -67,10 +55,15 @@ async function crawlUrl(url, host = "local") {
     console.error(`Unknown host: ${host}`);
     return { err: "unknown host" };
   }
-  const resp = await nc.request(`ats-nodes.${host}.http`, jc.encode({ url }), {
-    timeout: 60000,
-  });
-  const { err, data, ms } = jc.decode(resp.data);
+  const codec = ats.JSONCodec;
+  const resp = await ats.nats.request(
+    `ats-nodes.${host}.http`,
+    codec.encode({ url }),
+    {
+      timeout: 60000,
+    },
+  );
+  const { err, data, ms } = codec.decode(resp.data);
   return { err, data, ms };
 }
 
@@ -105,7 +98,7 @@ async function crawl(ats) {
       let ip;
       try {
         ip = await (await fetch(
-          `http://ipinfo.io/${ipAddr}?token=${Deno.env.get("IPINFO_TOKEN")}`,
+          `http://ipinfo.io/${ipAddr}?token=${ats.env.IPINFO_TOKEN}`,
         ))
           .json();
       } catch (e) {}
@@ -127,7 +120,7 @@ async function crawl(ats) {
     const url = `${i.url}/xrpc/com.atproto.server.describeServer`;
     await Promise.all(
       Object.keys(hosts).map(async (chost) => {
-        const { err, data, ms } = await crawlUrl(url, chost);
+        const { err, data, ms } = await crawlUrl(ats, url, chost);
         const inspect = {
           err,
           data,
@@ -152,6 +145,10 @@ async function crawl(ats) {
             ["crawler", chost],
           ]);
         }
+        ats.nats.publish(
+          "ats.service.pds.update",
+          ats.JSONCodec.encode({ url: i.url }),
+        );
         console.log(
           `[${chost}] -> ${i.url} ${ms ? "[" + ms + "ms]" : ""} ${
             err ? "error = " + err : ""
@@ -165,8 +162,7 @@ async function crawl(ats) {
 
 if (Deno.args[0] === "daemon") {
   console.log("Initializing ATScan ..");
-  //console.log('IPINFO_TOKEN', Deno.env.get("IPINFO_TOKEN"));
-  const ats = new ATScan();
+  const ats = new ATScan({ enableNats: true });
   ats.debug = true;
   await ats.init();
   console.log("pds-crawl daemon started");
@@ -178,7 +174,7 @@ if (Deno.args[0] === "daemon") {
   console.log(`Processing events [wait=${WAIT / 1000}s] ..`);
   setInterval(() => crawl(ats), WAIT);
 } else {
-  const ats = new ATScan({ debug: true });
+  const ats = new ATScan({ enableNats: true, debug: true });
   await ats.init();
   await crawl(ats);
 }

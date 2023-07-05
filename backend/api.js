@@ -4,18 +4,63 @@ import { oakCors } from "https://deno.land/x/cors/mod.ts";
 import { minidenticon } from "npm:minidenticons@4.2.0";
 import _ from "npm:lodash";
 
-const ats = new ATScan();
+const ats = new ATScan({ enableQueues: true, enableNats: true });
 await ats.init();
 ats.startDaemon();
 
-const HTTP_PORT = 6677;
+if (Number(ats.env.PORT) === 6677) {
+  const didUpdatedSub = ats.nats.subscribe("ats.service.plc.did.*");
+  (async () => {
+    for await (const m of didUpdatedSub) {
+      const sub = m.subject;
+      const codec = ats.JSONCodec;
+      const did = codec.decode(m.data)?.did;
+
+      const item = await ats.db.did.findOne({ did });
+      if (!item) {
+        continue;
+      }
+      Object.assign(item, prepareObject("did", item));
+      ats.nats.publish(
+        `ats.api.did.${
+          sub === "ats.service.plc.did.create" ? "create" : "update"
+        }`,
+        codec.encode(item),
+      );
+    }
+  })();
+
+  const pdsUpdatedSub = ats.nats.subscribe("ats.service.pds.*");
+  (async () => {
+    for await (const m of pdsUpdatedSub) {
+      const sub = m.subject;
+      const codec = ats.JSONCodec;
+      const url = codec.decode(m.data)?.url;
+
+      const item = await ats.db.pds.findOne({ url });
+      if (!item) {
+        continue;
+      }
+      Object.assign(item, prepareObject("pds", item));
+      ats.nats.publish(
+        `ats.api.pds.${sub === "ats.service.pds.create" ? "create" : "update"}`,
+        codec.encode(item),
+      );
+    }
+  })();
+}
+
+const HTTP_PORT = ats.env.PORT || 6677;
 const app = new Application();
 
 function perf(ctx) {
+  if (ctx.request.url.toString().startsWith("http://localhost:")) {
+    return null;
+  }
   console.log(
-    `GET ${ctx.request.url} [${performance.now() - ctx.perf}ms] ${
-      ctx.request.headers.get("user-agent")
-    }`,
+    `[${HTTP_PORT}] GET ${ctx.request.url} [${
+      performance.now() - ctx.perf
+    }ms] ${ctx.request.headers.get("user-agent")}`,
   );
 }
 
@@ -60,6 +105,11 @@ function prepareObject(type, item) {
       item.responseTime = !item.inspect || item.status !== "online"
         ? null
         : (respTimes.length > 0 ? _.mean(respTimes) : null);
+      break;
+
+    case "did":
+      item.srcHost = item.src.replace(/^https?:\/\//, "");
+      item.fed = findDIDFed(item);
       break;
   }
   return item;
@@ -119,6 +169,7 @@ router
       pds: { key: "pds" },
       size: { key: "repo.size" },
       commits: { key: "repo.commits" },
+      lastSnapshot: { key: "repo.time" },
     };
 
     let inputSort = ctx.request.url.searchParams.get("sort");
@@ -186,8 +237,7 @@ router
       const did
         of (await ats.db.did.find(query).sort(sort).limit(limit).toArray())
     ) {
-      did.srcHost = did.src.replace(/^https?:\/\//, "");
-      did.fed = findDIDFed(did);
+      Object.assign(did, prepareObject("did", did));
       out.push(did);
     }
 
@@ -240,13 +290,31 @@ router
   })
   .get("/_metrics", async (ctx) => {
     const metrics = {
-      pds_count: [await ats.db.pds.count(), "PDS count", "counter"],
-      did_count: [await ats.db.did.count(), "DID count", "counter"],
+      pds_count: [await ats.db.pds.count()],
+      did_count: [await ats.db.did.count()],
     };
+    for (const queueName of Object.keys(ats.queues)) {
+      const queue = ats.queues[queueName];
+      const getMetric = async (name) =>
+        (await queue.getMetrics(name)).meta.count;
+
+      metrics[`queue_metric_completed{name="${queueName}"}`] = [
+        await getMetric("completed"),
+      ];
+      metrics[`queue_metric_failed{name="${queueName}"}`] = [
+        await getMetric("failed"),
+      ];
+      metrics[`queue_active{name="${queueName}"}`] = [
+        await queue.getActiveCount(),
+      ];
+      metrics[`queue_waiting{name="${queueName}"}`] = [
+        await queue.getWaitingCount(),
+      ];
+    }
     ctx.response.body = Object.keys(metrics).map((m) => {
       const [data, help, type] = metrics[m];
-      return `# HELP ${m} ${help}\n# TYPE ${m} ${type}\n${m} ${data}\n`;
-    }).join("\n");
+      return `${m} ${data}`;
+    }).join("\n") + "\n";
     perf(ctx);
   })
   .get("/:id.svg", async (ctx) => {

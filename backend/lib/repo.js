@@ -102,4 +102,7 @@ export async function saveRepo(ats, didInfo, job = null) {
   }
   // update db record
   await ats.db.did.updateOne({ did }, { $set: { repo } });
+
+  // send notification to socket
+  ats.nats.publish("ats.service.plc.did.update", ats.JSONCodec.encode({ did }));
 }

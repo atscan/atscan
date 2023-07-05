@@ -1,7 +1,7 @@
 import { ATScan } from "./lib/atscan.js";
 import whoiser from "npm:whoiser";
 
-const wait = 60 * 5;
+const wait = 60 * 1;
 
 async function index(ats) {
   for (const pds of await ats.db.pds.find().toArray()) {
@@ -30,6 +30,10 @@ async function index(ats) {
       host,
     ]]);
     await ats.writeInflux("pds_size", "intField", size, [["pds", host]]);
+    ats.nats.publish(
+      "ats.service.pds.update",
+      ats.JSONCodec.encode({ url: pds.url }),
+    );
   }
   console.log("indexer round finished");
   //console.log(await whoiser("dev.otaso-sky.blue"));
@@ -37,7 +41,7 @@ async function index(ats) {
 
 if (Deno.args[0] === "daemon") {
   console.log("Initializing ATScan ..");
-  const ats = new ATScan();
+  const ats = new ATScan({ enableNats: true });
   ats.debug = true;
   await ats.init();
   console.log("indexer daemon started");
@@ -49,7 +53,7 @@ if (Deno.args[0] === "daemon") {
   console.log(`Processing [wait=${wait}s] ..`);
   setInterval(() => index(ats), wait * 1000);
 } else {
-  const ats = new ATScan({ debug: true });
+  const ats = new ATScan({ enableNats: true, debug: true });
   await ats.init();
   await index(ats);
 
