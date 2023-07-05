@@ -18,6 +18,12 @@ module.exports = {
     interpreter: "deno",
     interpreterArgs: "run --unstable --allow-net --allow-read --allow-env --allow-sys",
   }, {
+    name: "atscan-firehose",
+    script: "./backend/firehose.js",
+    args: "daemon",
+    interpreter: "deno",
+    interpreterArgs: "run --unstable --allow-net --allow-read --allow-env --allow-sys --allow-ffi",
+  }, {
     name: "atscan-fe-dev",
     interpreter: "mullvad-exclude",
     interpreterArgs: "npm run dev",

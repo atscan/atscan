@@ -56,14 +56,22 @@ async function crawlUrl(ats, url, host = "local") {
     return { err: "unknown host" };
   }
   const codec = ats.JSONCodec;
-  const resp = await ats.nats.request(
-    `ats-nodes.${host}.http`,
-    codec.encode({ url }),
-    {
-      timeout: 60000,
-    },
-  );
-  const { err, data, ms } = codec.decode(resp.data);
+  let err, data, ms;
+  try {
+    const resp = await ats.nats.request(
+      `ats-nodes.${host}.http`,
+      codec.encode({ url }),
+      {
+        timeout: 60000,
+      },
+    );
+    const decoded = codec.decode(resp.data);
+    err = decoded.err;
+    data = decoded.data;
+    ms = decoded.ms;
+  } catch (e) {
+    err = e.message;
+  }
   return { err, data, ms };
 }
 
@@ -149,11 +157,11 @@ async function crawl(ats) {
           "ats.service.pds.update",
           ats.JSONCodec.encode({ url: i.url }),
         );
-        console.log(
+        /*console.log(
           `[${chost}] -> ${i.url} ${ms ? "[" + ms + "ms]" : ""} ${
             err ? "error = " + err : ""
           }`,
-        );
+        );*/
       }),
     );
   });

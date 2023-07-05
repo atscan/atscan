@@ -1,12 +1,10 @@
-export async function load({ params, fetch, parent }) {
-	const { config } = await parent();
+import { request } from '$lib/api';
 
-	const itemResp = await fetch(`${config.api}/pds/${params.host}`);
-	const didsResp = await fetch(`${config.api}/dids?q=pds:${params.host}&limit=10`, {
-		headers: { 'x-ats-wrapped': 'true' }
-	});
+export async function load({ params, fetch }) {
 	return {
-		item: await itemResp.json(),
-		dids: await didsResp.json()
+		item: request(fetch, `/pds/${params.host}`),
+		dids: request(fetch, `/dids?q=pds:${params.host}&limit=10`, {
+			headers: { 'x-ats-wrapped': 'true' }
+		})
 	};
 }

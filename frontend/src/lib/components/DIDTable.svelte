@@ -13,6 +13,7 @@
 	import { format } from 'echarts';
 	export let sourceData;
 	export let data;
+	export let sorting = false;
 
 	const dispatch = createEventDispatcher();
 
@@ -83,19 +84,27 @@
 			val = `/${row.did}`;
 		}
 		if (key === 'commits') {
-			val = row.repo?.commits ? formatNumber(row.repo.commits) : '-';
+			val = row.repo?.commits
+				? formatNumber(row.repo.commits)
+				: '<i class="fa-solid fa-clock opacity-20" alt="Not yet indexed" title="Not yet indexed"></i>';
 		}
 		if (key === 'size') {
-			val =
-				'<div class="text-lg">' +
-				(row.repo?.size
-					? filesize(row.repo.size) +
-					  '</div><div>' +
-					  formatNumber(
-							Object.keys(row.repo.collections).reduce((t, c) => (t += row.repo.collections[c]), 0)
-					  ) +
-					  ' items</div>'
-					: '-');
+			val = row.repo?.size
+				? '<div class="text-lg">' +
+				  filesize(row.repo.size) +
+				  '</div><div>' +
+				  formatNumber(
+						Object.keys(row.repo.collections).reduce((t, c) => (t += row.repo.collections[c]), 0)
+				  ) +
+				  ' items</div>'
+				: '<i class="fa-solid fa-clock opacity-20" alt="Not yet indexed" title="Not yet indexed"></i>';
+		}
+		if (key === 'lastSnapshot') {
+			val = `<span class="text-sm">${
+				row.repo?.time
+					? dateDistance(row.repo.time) + ' ago'
+					: '<i class="fa-solid fa-clock opacity-20" alt="Not yet indexed" title="Not yet indexed"></i>'
+			}</span>`;
 		}
 		return val;
 	}
@@ -107,6 +116,7 @@
 			['PDS (PLC)', 'pds'],
 			['Repo size', 'size'],
 			['Commits', 'commits'],
+			//['Last snapshot', 'lastSnapshot'],
 			['Updated', 'lastMod']
 		],
 		body: customTableMapper(
@@ -114,12 +124,13 @@
 			['img', 'did', 'srcHost', 'size', 'commits', 'lastMod'],
 			tableMap
 		),
-		meta: customTableMapper(sourceData || [], ['did_raw', 'url'], tableMap)
+		meta: customTableMapper(sourceData || [], ['did_raw', 'url', '_isChange'], tableMap)
 	};
 </script>
 
 <Table
 	source={tableSimple}
+	{sorting}
 	currentSort={data.sort}
 	defaultSort=""
 	on:headSelected={(e) => onHeadSelected(e)}

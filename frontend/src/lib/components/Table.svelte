@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { tableA11y } from '@skeletonlabs/skeleton';
 	import { goto } from '$app/navigation';
+	import { fade, slide } from 'svelte/transition';
 
 	const dispatch = createEventDispatcher();
 
@@ -13,7 +14,9 @@
 	export let source;
 
 	export let currentSort = null;
-	export let defaultSort;
+	export let defaultSort = null;
+	export let favoriteColumn = null;
+	export let sorting = false;
 
 	if (!currentSort) {
 		currentSort = defaultSort;
@@ -67,6 +70,12 @@
 		dispatch('headSelected', meta);
 	}
 
+	function onFavoriteClick(event, id) {
+		event.preventDefault();
+		event.stopPropagation();
+		dispatch('favoriteClick', id);
+	}
+
 	// Row Keydown Handler
 	function onRowKeydown(event, rowIndex) {
 		if (['Enter', 'Space'].includes(event.code)) onRowClick(event, rowIndex);
@@ -91,10 +100,10 @@
 		<thead class="table-head {regionHead}">
 			<tr>
 				{#each source.head as heading}
-					<th class="{regionHeadCell} cursor-pointer hover:underline text-sm"
+					<th class="{regionHeadCell} {sorting ? 'cursor-pointer hover:underline' : ''} text-sm"
 							on:click={(e) => { onHeaderClick(e, Array.isArray(heading) ? heading[1] : heading) }}>
 						{@html Array.isArray(heading) ? heading[0] : heading}
-						{#if Array.isArray(heading) && (currentSort?.replace(/^!/, '') === heading[1] || '!'+currentSort === heading[1])}
+						{#if sorting && Array.isArray(heading) && (currentSort?.replace(/^!/, '') === heading[1] || '!'+currentSort === heading[1])}
 							{#if currentSort?.startsWith('!')}
 								↑
 							{:else}
@@ -111,6 +120,7 @@
 				<!-- Row -->
 				<!-- prettier-ignore -->
 				<tr
+					id={source.meta[rowIndex][0]}
 					on:click={(e) => { onRowClick(e, rowIndex); }}
 					on:keydown={(e) => { onRowKeydown(e, rowIndex); }}
 					aria-rowindex={rowIndex + 1}
@@ -119,12 +129,15 @@
 						<!-- Cell -->
 						<!-- prettier-ignore -->
 						<td
-							class="{regionCell}"
+							class="{source.meta[rowIndex][2] === 'update' ? 'bg-yellow-500/50' : (source.meta[rowIndex][2] === 'create' ? 'bg-green-500/50' : '')} transition-all duration-[2500ms] ease-out {regionCell}"
 							role="gridcell"
 							aria-colindex={cellIndex + 1}
 							tabindex={cellIndex === 0 ? 0 : -1}
 						>
 							{@html cell ? cell : '-'}
+							{#if favoriteColumn !== null && favoriteColumn === cellIndex}
+								<i class="favorite fa-regular fa-star ml-1 {source.meta[rowIndex][3] !== undefined && source.meta[rowIndex][3] ? 'inline-block active text-yellow-500 opacity-100 hover:text-red-500' : 'opacity-50 hidden hover:text-green-500'} hover:opacity-100" on:click={(ev) => onFavoriteClick(ev, source.meta[rowIndex][0])}></i>
+							{/if}
 						</td>
 					{/each}
 				</tr>
@@ -142,3 +155,12 @@
 		{/if}
 	</table>
 </div>
+
+<style>
+	.table-body tr td .favorite {
+		display: none;
+	}
+	.table-body tr:hover td .favorite {
+		display: inline-block;
+	}
+</style>

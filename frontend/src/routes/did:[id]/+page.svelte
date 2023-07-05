@@ -59,6 +59,11 @@
 	let current;
 	let currentError;
 
+	$: records =
+		item.repo && item.repo.collections
+			? Object.keys(item.repo?.collections).reduce((t, c) => (t += item.repo.collections[c]), 0)
+			: null;
+
 	onMount(async () => {
 		if (item.repo) {
 			try {
@@ -102,7 +107,7 @@
 		</div>
 	</div>
 
-	<h2 class="h2">Revisions <span class="font-normal text-2xl">({sourceData.length})</span></h2>
+	<h2 class="h2">History <span class="font-normal text-2xl">({sourceData.length})</span></h2>
 	<Table source={historyTable} />
 
 	{#if data.pds}
@@ -139,26 +144,20 @@
 					</tr>
 					<tr>
 						<th class="text-right">Records</th>
-						<td
-							>{formatNumber(
-								Object.keys(item.repo?.collections).reduce(
-									(t, c) => (t += item.repo.collections[c]),
-									0
-								)
-							)} items</td
-						>
+						<td>{formatNumber(records)} items</td>
 					</tr>
 					<tr>
 						<th class="text-right">Collections</th>
 						<td
-							>{#if item.repo?.collections.length > 0}{Object.keys(item.repo?.collections)
+							>{#if item.repo?.collections && records > 0}
+								{Object.keys(item.repo?.collections)
 									.map((c) => `${formatNumber(item.repo.collections[c])} ${c}`)
 									.join(', ')}{:else}<i>No items</i>{/if}</td
 						>
 					</tr>
 					<tr>
 						<th class="text-right">Indexed</th>
-						<td>{dateDistance(item.repo?.time)} ago</td>
+						<td>{dateDistance(item.repo?.time)} ago ({item.repo?.time})</td>
 					</tr>
 					<tr>
 						<th class="text-right">Up to date?</th>

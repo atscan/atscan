@@ -92,6 +92,7 @@ function prepareObject(type, item) {
     case "pds":
       item.host = item.url.replace(/^https?:\/\//, "");
       item.fed = findPDSFed(item);
+      item.err = Boolean(item.inspect?.current?.err);
       item.status = !item.inspect
         ? "unknown"
         : (item.inspect?.current.err ? "offline" : "online");

@@ -12,11 +12,16 @@
 	} from '$lib/utils.js';
 	export let sourceData;
 	export let data;
+	export let sorting = false;
 
 	const dispatch = createEventDispatcher();
 
 	function onHeadSelected(event) {
 		dispatch('headSelected', event.detail);
+	}
+
+	function onFavoriteClick(event) {
+		dispatch('favoriteClick', event.detail);
 	}
 
 	function tableMap({ val, key, row }) {
@@ -72,7 +77,9 @@
 			val = `<a href="/dids?q=pds:${row.host}" class="anchor">${formatNumber(val)}</a>`;
 		}
 		if (key === 'size') {
-			val = row.size ? filesize(row.size) : '-';
+			val = row.size
+				? `<span alt="${row.size}" title="${row.size}">${filesize(row.size)}</span>`
+				: '-';
 		}
 		if (key === 'lastOnline' && row.inspect) {
 			val = `<span class="text-xs">${
@@ -107,7 +114,7 @@
 			['Size', 'size'],
 			['Location', 'country'],
 			['PLCs (User Domains)', 'plcs'],
-			['Resp. time', 'responseTime'],
+			['Latency', 'responseTime'],
 			['Last Online', 'lastOnline']
 		],
 		body: customTableMapper(
@@ -125,13 +132,16 @@
 			],
 			tableMap
 		),
-		meta: customTableMapper(sourceData, ['host_raw', 'url'], tableMap)
+		meta: customTableMapper(sourceData, ['host_raw', 'url', '_isChange', '_isFavorite'], tableMap)
 	};
 </script>
 
 <Table
 	source={tableSimple}
+	{sorting}
 	currentSort={data.sort}
 	defaultSort=""
+	favoriteColumn={2}
+	on:favoriteClick={(e) => onFavoriteClick(e)}
 	on:headSelected={(e) => onHeadSelected(e)}
 />

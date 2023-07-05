@@ -1,8 +1,7 @@
-export async function load({ fetch, parent }) {
-	const { config } = await parent();
+import { request } from '$lib/api';
 
-	const plcRes = await fetch(`${config.api}/plc`);
+export async function load({ fetch }) {
 	return {
-		plc: await plcRes.json()
+		plc: request(fetch, '/plc')
 	};
 }

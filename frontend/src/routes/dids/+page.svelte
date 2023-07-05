@@ -7,10 +7,12 @@
 	import { onMount, onDestroy } from 'svelte';
 	import DIDTable from '$lib/components/DIDTable.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
+	import { nats, connected, codec } from '$lib/sockets.js';
 
 	export let data;
 	const search = writable(data.q?.trim() || '');
 	$: sourceData = data.did;
+	$: totalCount = data.totalCount;
 	let onlySandbox = data.onlySandbox || null;
 	let sort = data.sort || null;
 
@@ -20,13 +22,69 @@
 	}
 
 	let periodicUpdate = null;
+	const subscriptions = [];
+
+	function subscribeDIDs() {
+		const sub = nats.subscribe('ats.api.did.*');
+		subscriptions.push(sub);
+		(async () => {
+			for await (const m of sub) {
+				//console.log(`[${sub.getProcessed()}x]: ${JSON.stringify(m.data)}`);
+				switch (m.subject) {
+					case 'ats.api.did.update':
+					case 'ats.api.did.create':
+						const did = codec.decode(m.data);
+						const type = m.subject.replace(/^ats.api.did\./, '');
+						did._isChange = type;
+
+						if (m.subject === 'ats.api.did.create' && onlySandbox && did.fed === 'sandbox') {
+							totalCount += 1;
+							$: sourceData = [did, ...sourceData].slice(0, 100);
+						} else if (m.subject === 'ats.api.did.create' && !data.q && !sort && !onlySandbox) {
+							totalCount += 1;
+							$: sourceData = [did, ...sourceData].slice(0, 100);
+						} else {
+							const exist = sourceData.find((i) => i.did === did.did);
+							if (exist) {
+								const index = sourceData.indexOf(exist);
+								$: sourceData = [
+									...sourceData.slice(0, index),
+									did,
+									...sourceData.slice(index + 1)
+								];
+							}
+						}
+						setTimeout(() => {
+							$: sourceData = sourceData.map((sd) => {
+								if (sd.did === did.did) {
+									did._isChange = false;
+								}
+								return sd;
+							});
+						}, 2000);
+						break;
+				}
+			}
+			console.log('subscription closed');
+		})();
+	}
+
+	connected.subscribe((val) => {
+		if (val === true) {
+			subscribeDIDs();
+		}
+	});
+
 	onMount(() => {
-		periodicUpdate = setInterval(() => {
+		/*periodicUpdate = setInterval(() => {
 			invalidate((url) => url.pathname === '/dids');
-		}, 60 * 1000);
+		}, 60 * 1000);*/
 	});
 	onDestroy(() => {
 		clearInterval(periodicUpdate);
+		for (const sub of subscriptions) {
+			sub.unsubscribe();
+		}
 	});
 
 	function gotoNewTableState() {
@@ -136,11 +194,11 @@
 		<div class="text-xl">
 			{#if $search && $search?.trim() !== ''}
 				Search for <code class="code text-2xl variant-tertiary">{$search.trim()}</code>
-				{#if onlySandbox}(only sandbox){/if} ({formatNumber(data.totalCount)}):
+				{#if onlySandbox}(only sandbox){/if} ({formatNumber(totalCount)}):
 			{:else}
-				All DIDs {#if onlySandbox} on sandbox{/if} ({formatNumber(data.totalCount)}):
+				All DIDs {#if onlySandbox} on sandbox{/if} ({formatNumber(totalCount)}):
 			{/if}
 		</div>
-		<DIDTable {sourceData} {data} on:headSelected={(e) => onHeadSelected(e)} />
+		<DIDTable {sourceData} {data} sorting="true" on:headSelected={(e) => onHeadSelected(e)} />
 	{/if}
 </BasicPage>

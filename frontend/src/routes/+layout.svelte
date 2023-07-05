@@ -14,28 +14,22 @@
 	import { storeHighlightJs } from '@skeletonlabs/skeleton';
 	import { Drawer, drawerStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { connect, StringCodec, JSONCodec } from 'nats.ws';
 	import { i18n } from '$lib/i18n.js';
+	import { nats, connect, connected } from '$lib/sockets.js';
+	import { navigating } from '$app/stores';
+	import { ProgressBar } from '@skeletonlabs/skeleton';
 
 	export let data;
 
 	storeHighlightJs.set(hljs);
 
+	onMount(() => {
+		connect();
+	});
+
 	afterNavigate(() => {
 		//console.log('scrolltop');
 		//window.scrollTo(0, 0);
-	});
-
-	onMount(async () => {
-		const nc = await connect({ servers: 'wss://nats.gwei.cz' });
-		const codec = JSONCodec();
-		const sub = nc.subscribe('greet.sue');
-		(async () => {
-			for await (const m of sub) {
-				console.log(`[${sub.getProcessed()}]: ${JSON.stringify(codec.decode(m.data))}`);
-			}
-			console.log('subscription closed');
-		})();
 	});
 
 	function drawerOpen() {
@@ -103,8 +97,13 @@
 <!-- App Shell -->
 <AppShell>
 	<svelte:fragment slot="header">
+		<div class="h-1.5 bg-surface-100-800-token">
+			{#if $navigating}
+				<div class="w-full"><ProgressBar meter="bg-primary-500" track="bg-surface-100-800-token" /></div>
+			{/if}
+		</div>
 		<!-- App Bar -->
-		<AppBar>
+		<AppBar padding="px-4 pb-4 pt-2.5">
 			<svelte:fragment slot="lead">
 				<div class="flex items-center">
 					<button class="lg:hidden btn btn-sm" on:click={drawerOpen}>
@@ -176,6 +175,11 @@
 					Twitter
 				</a>
 				-->
+				{#if $connected}
+					<div class="text-xs pr-4">
+						<i class="fa-solid fa-circle text-green-500 text-xs mr-1 animate-pulse" /> Connected
+					</div>
+				{/if}
 				<LightSwitch />
 				<div class="relative hidden lg:block">
 					<a
