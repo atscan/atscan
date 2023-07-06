@@ -99,7 +99,9 @@
 	<svelte:fragment slot="header">
 		<div class="h-1.5 bg-surface-100-800-token">
 			{#if $navigating}
-				<div class="w-full"><ProgressBar meter="bg-primary-500" track="bg-surface-100-800-token" /></div>
+				<div class="w-full">
+					<ProgressBar meter="bg-primary-500" track="bg-surface-100-800-token" />
+				</div>
 			{/if}
 		</div>
 		<!-- App Bar -->

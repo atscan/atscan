@@ -63,6 +63,8 @@ export function getPDSStatus(row) {
 	const [color, ico, text] =
 		row.status === 'unknown'
 			? ['text-gray-500', null, 'Status unknown']
+			: row.status === 'degraded'
+			? ['text-orange-500', null, 'Partially degraded']
 			: row.status === 'offline'
 			? ['text-red-500', null, 'Offline']
 			: ['text-green-500', null, 'Online'];

@@ -63,7 +63,7 @@ module.exports = {
     script: "./backend/repo-worker.js",
     interpreter: "mullvad-exclude",
     interpreterArgs: "deno run --unstable --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-sys ./backend/repo-worker.js",
-    instances: 6,
+    instances: 4,
   }, {
     name: "bull-ui",
     script: "index.js",

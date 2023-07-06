@@ -8,6 +8,8 @@ const ats = new ATScan({ enableQueues: true, enableNats: true });
 await ats.init();
 ats.startDaemon();
 
+const servers = ["local", "texas", "tokyo"];
+
 if (Number(ats.env.PORT) === 6677) {
   const didUpdatedSub = ats.nats.subscribe("ats.service.plc.did.*");
   (async () => {
@@ -21,6 +23,7 @@ if (Number(ats.env.PORT) === 6677) {
         continue;
       }
       Object.assign(item, prepareObject("did", item));
+      item.revs = [item.revs[item.revs.length - 1]];
       ats.nats.publish(
         `ats.api.did.${
           sub === "ats.service.plc.did.create" ? "create" : "update"
@@ -87,15 +90,31 @@ function findDIDFed(item) {
   return ff ? ff.id : null;
 }
 
+function getPDSStatus(item) {
+  if (!item.inspect) {
+    return "unknown";
+  }
+  const bare = Object.keys(item.inspect).filter((k) => servers.includes(k));
+  if (bare.length === 0) {
+    return "unknown";
+  }
+  const offlineNum = bare.reduce(
+    (acc, k) => acc += item.inspect[k].err ? 1 : 0,
+    0,
+  );
+  if (bare.length === offlineNum) {
+    return "offline";
+  }
+  return offlineNum > 0 ? "degraded" : "online";
+}
+
 function prepareObject(type, item) {
   switch (type) {
     case "pds":
       item.host = item.url.replace(/^https?:\/\//, "");
       item.fed = findPDSFed(item);
       item.err = Boolean(item.inspect?.current?.err);
-      item.status = !item.inspect
-        ? "unknown"
-        : (item.inspect?.current.err ? "offline" : "online");
+      item.status = getPDSStatus(item);
 
       const respTimes = item.inspect
         ? Object.keys(item.inspect).filter((k) =>
@@ -310,6 +329,12 @@ router
       ];
       metrics[`queue_waiting{name="${queueName}"}`] = [
         await queue.getWaitingCount(),
+      ];
+      metrics[`queue_waiting_children{name="${queueName}"}`] = [
+        await queue.getWaitingChildrenCount(),
+      ];
+      metrics[`queue_prioritized{name="${queueName}"}`] = [
+        await queue.getPrioritizedCount(),
       ];
     }
     ctx.response.body = Object.keys(metrics).map((m) => {

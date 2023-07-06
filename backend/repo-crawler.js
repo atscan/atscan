@@ -31,10 +31,11 @@ async function processPDSRepos(ats, repos, item) {
           continue;
         }
       }
-      await ats.queues.repoSnapshot.add(repo.did, didObj, {
-        //priority: 1,
+      const task = await ats.queues.repoSnapshot.add(repo.did, didObj, {
+        priority: 100,
         jobId: repo.did,
       });
+      //console.log(task)
       count++;
     }
   }
@@ -77,6 +78,9 @@ async function traversePDSRepos(ats, item, cursor = null) {
 async function crawlNew(ats) {
   const pds = await ats.db.pds.find({}).toArray();
   const results = pooledMap(CONCURRENCY, _.shuffle(pds), async (item) => {
+    if (item.url === "https://bsky.social") {
+      return null;
+    }
     if (!item.inspect.current || item.inspect.current.err) {
       return null;
     }

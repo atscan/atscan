@@ -87,7 +87,11 @@ async function processPlcExport(ats, plc, after = null) {
         ats.JSONCodec.encode({ did: obj.did }),
       );
     }
-    await ats.queues.repoSnapshot.add(obj.did, obj, { jobId: obj.did });
+    await ats.queues.repoSnapshot.add(obj.did, obj, {
+      jobId: obj.did,
+      delay: 5000,
+      priority: 1,
+    });
 
     // update pds
     if (pdsUrl) {
@@ -115,10 +119,11 @@ async function processPlcExport(ats, plc, after = null) {
         });
       }
       // update PDS stats
-      const didsCount = await ats.db.did.countDocuments({
+      /*const didsCount = await ats.db.did.countDocuments({
         "pds": { $in: [pdsUrl] },
       });
       await ats.db.pds.updateOne({ url: pdsUrl }, { $set: { didsCount } });
+      */
       ats.nats.publish(
         "ats.service.pds.update",
         ats.JSONCodec.encode({ url: pdsUrl }),
@@ -138,7 +143,7 @@ async function processPlcExport(ats, plc, after = null) {
 }
 
 if (Deno.args[0] === "daemon") {
-  const wait = 15;
+  const wait = 10;
 
   console.log("Initializing ATScan ..");
   const ats = new ATScan({ enableNats: true, enableQueues: true });

@@ -107,6 +107,46 @@
 		</div>
 	</div>
 
+	{#if item.repo && item.repo.profile}
+		<div class="table-container">
+			<!-- Native Table Element -->
+			<table class="table table-hover">
+				<tbody>
+					<tr>
+						<th class="text-right md:w-64">Name</th>
+						<td>{item.repo.profile.displayName || '-'}</td>
+					</tr>
+					<tr>
+						<th class="text-right">Description</th>
+						<td>{item.repo.profile.description || '-'}</td>
+					</tr>
+					{#if item.repo.profile.avatar}
+						<tr>
+							<th class="text-right">Avatar</th>
+							<td
+								><img
+									src={`${item.pds[0]}/xrpc/com.atproto.sync.getBlob?did=${item.did}&cid=${item.repo.profile.avatar.ref.$link}`}
+									class="w-40"
+								/></td
+							>
+						</tr>
+					{/if}
+					{#if item.repo.profile.banner}
+						<tr>
+							<th class="text-right">Banner</th>
+							<td
+								><img
+									src={`${item.pds[0]}/xrpc/com.atproto.sync.getBlob?did=${item.did}&cid=${item.repo.profile.banner.ref.$link}`}
+									class="w-40"
+								/></td
+							>
+						</tr>
+					{/if}
+				</tbody>
+			</table>
+		</div>
+	{/if}
+
 	<h2 class="h2">History <span class="font-normal text-2xl">({sourceData.length})</span></h2>
 	<Table source={historyTable} />
 

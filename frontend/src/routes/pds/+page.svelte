@@ -108,7 +108,12 @@
 			}
 			base = orderBy(base, [sortKey], [sortDirection === -1 ? 'desc' : 'asc']);
 		} else {
-			base = orderBy(base, ['env', 'err', 'didsCount'], ['asc', 'asc', 'desc']);
+			base = base.map((x) => {
+				x.statusSort =
+					x.status === 'online' ? 0 : x.status === 'degraded' ? 1 : x.status === 'offline' ? 2 : 3;
+				return x;
+			});
+			base = orderBy(base, ['env', 'statusSort', 'didsCount'], ['asc', 'asc', 'desc']);
 		}
 		return base;
 	}
