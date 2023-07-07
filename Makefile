@@ -30,7 +30,10 @@ firehose:
 	deno run --unstable --allow-net --allow-read --allow-env --allow-sys --allow-ffi ./backend/firehose.js
 
 fe-rebuild:
-	cd frontend && npm run build && pm2 restart atscan-fe
+	cd frontend && npm run build
+	rm -rf frontend/prod-build
+	cp -r frontend/build frontend/prod-build
+	pm2 restart atscan-fe
 
 be-restart:
 	pm2 restart atscan-api atscan-indexer atscan-pds-crawler atscan-plc-crawler

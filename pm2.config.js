@@ -33,7 +33,7 @@ module.exports = {
     }
   }, {
     name: "atscan-fe",
-    script: "./frontend/build/index.js",
+    script: "./frontend/prod-build/index.js",
     interpreter: "mullvad-exclude",
     interpreterArgs: "node",
     env: {
