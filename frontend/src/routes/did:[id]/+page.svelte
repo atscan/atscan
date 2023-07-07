@@ -13,6 +13,16 @@
 	const item = data.item;
 	const asa = item.revs[item.revs.length - 1].operation?.alsoKnownAs;
 	const handles = asa ? asa.map((h) => h.replace(/^at:\/\//, '')) : [];
+	let verifiedHandles = null;
+
+	async function checkDNSHandle(did, host) {
+		const resp = await fetch(`https://dns.google/resolve?name=_atproto.${host}&type=TXT`);
+		const out = await resp.json();
+		if (!out.Answer) {
+			return false;
+		}
+		return out.Answer.find((a) => a.type === 16 && a.data === `did=${did}`);
+	}
 
 	function tableMapperValuesLocal(source, keys) {
 		let i = 0;
@@ -20,13 +30,30 @@
 			source
 				.map((row) => {
 					const mappedRow = {};
-					keys.forEach((key) => {
+					keys.forEach((key, rowNumber) => {
 						let val = row[key];
 						if (key === 'num') {
 							val = String('#' + i);
 						}
 						if (key === 'handle') {
-							val = row.operation.alsoKnownAs?.map((a) => a.replace(/^at:\/\//, '@')).join(', ');
+							const handle = row.operation?.alsoKnownAs
+								? row.operation?.alsoKnownAs[0].replace(/^at:\/\//, '')
+								: null;
+							if (handle) {
+								val = `@${handle}`;
+								if (!handle.match(/\.bsky\.social$/) && i === source.length - 1) {
+									if (verifiedHandles === null) {
+										val +=
+											' <i class="ml-1.5 fa-solid fa-clock opacity-30" alt="Loading .." title="Loading .."></i>';
+									} else if (verifiedHandles.includes(handle)) {
+										val +=
+											' <i class="ml-1.5 fa-solid fa-circle-check text-green-500" alt="Verified" title="Verified"></i>';
+									} else {
+										val +=
+											' <i class="ml-1.5 fa-solid fa-circle-xmark text-red-500" alt="Not verified" title="Not verified"></i>';
+									}
+								}
+							}
 						}
 						if (key === 'createdAt') {
 							val = `<span title="${val}" alt="${val}">${dateDistance(val)}</span>`;
@@ -41,11 +68,15 @@
 	}
 
 	const sourceData = item.revs;
-	const historyTable = {
-		head: ['#', 'Handle', 'CID', 'Age'],
-		body: tableMapperValuesLocal(sourceData, ['num', 'handle', 'cid', 'createdAt']),
-		meta: tableMapperValues(sourceData, ['cid'])
-	};
+	let historyTable = renderTable();
+
+	function renderTable() {
+		return {
+			head: ['#', 'Handle', 'CID', 'Age'],
+			body: tableMapperValuesLocal(sourceData, ['num', 'handle', 'cid', 'createdAt']),
+			meta: tableMapperValues(sourceData, ['cid'])
+		};
+	}
 
 	const fed = item.fed ? data.ecosystem.data.federations.find((f) => f.id === item.fed) : null;
 	const breadcrumb = [{ label: 'DIDs', link: '/dids' }];
@@ -76,6 +107,17 @@
 				}
 			} catch (e) {
 				currentError = e.message;
+			}
+		}
+		if (handles && handles[0] && !handles[0].match(/\.bsky\.social$/)) {
+			const verified = await checkDNSHandle(item.did, handles[0]);
+			if (verified) {
+				console.log(handles[0], 'xxxx');
+				verifiedHandles = [handles[0]];
+				historyTable = renderTable();
+			} else {
+				verifiedHandles = [];
+				historyTable = renderTable();
 			}
 		}
 	});
