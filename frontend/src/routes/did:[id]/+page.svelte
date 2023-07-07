@@ -15,8 +15,12 @@
 	const handles = asa ? asa.map((h) => h.replace(/^at:\/\//, '')) : [];
 	let verifiedHandles = null;
 
+	export function checkDNSHandleUrl(host) {
+		return `https://dns.google/resolve?name=_atproto.${host}&type=TXT`;
+	}
+
 	async function checkDNSHandle(did, host) {
-		const resp = await fetch(`https://dns.google/resolve?name=_atproto.${host}&type=TXT`);
+		const resp = await fetch(checkDNSHandleUrl(host));
 		const out = await resp.json();
 		if (!out.Answer) {
 			return false;
@@ -42,15 +46,19 @@
 							if (handle) {
 								val = `@${handle}`;
 								if (!handle.match(/\.bsky\.social$/) && i === source.length - 1) {
+									let hstr = null;
 									if (verifiedHandles === null) {
-										val +=
-											' <i class="ml-1.5 fa-solid fa-clock opacity-30" alt="Loading .." title="Loading .."></i>';
+										hstr =
+											'<i class="fa-solid fa-clock opacity-30" alt="Loading .." title="Loading .."></i>';
 									} else if (verifiedHandles.includes(handle)) {
-										val +=
-											' <i class="ml-1.5 fa-solid fa-circle-check text-green-500" alt="Verified" title="Verified"></i>';
+										hstr =
+											'<i class="fa-solid fa-circle-check text-green-500" alt="Verified" title="Verified"></i>';
 									} else {
-										val +=
-											' <i class="ml-1.5 fa-solid fa-circle-xmark text-red-500" alt="Not verified" title="Not verified"></i>';
+										hstr =
+											'<i class="fa-solid fa-circle-xmark text-red-500" alt="Not verified" title="Not verified"></i>';
+									}
+									if (hstr) {
+										val += `<a href="${checkDNSHandleUrl(handle)}" class="ml-1.5">${hstr}</a>`;
 									}
 								}
 							}
@@ -112,7 +120,6 @@
 		if (handles && handles[0] && !handles[0].match(/\.bsky\.social$/)) {
 			const verified = await checkDNSHandle(item.did, handles[0]);
 			if (verified) {
-				console.log(handles[0], 'xxxx');
 				verifiedHandles = [handles[0]];
 				historyTable = renderTable();
 			} else {
