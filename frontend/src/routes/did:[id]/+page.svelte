@@ -30,10 +30,13 @@
 		// if DNS verification failed, then we try http based
 		if (!verifications[0].verified) {
 			const httpCheckUrl = `https://${handle}/.well-known/atproto-did`;
-			const httpResp = await fetch(httpCheckUrl);
-			const httpString = await httpResp.text();
+			let httpResp, httpString;
+			try {
+				httpResp = await fetch(httpCheckUrl);
+				httpString = await httpResp.text();
+			} catch {}
 			verifications.push({
-				verified: httpString.includes(did),
+				verified: httpResp?.ok && httpString?.includes(did),
 				type: 'http',
 				url: httpCheckUrl
 			});
@@ -124,23 +127,27 @@
 			: null;
 
 	onMount(async () => {
-		if (item.repo) {
-			try {
-				const res = await fetch(
-					`${item.pds[0]}/xrpc/com.atproto.sync.getCommitPath?did=${item.did}&earliest=${item.repo.root}`
-				);
-				current = await res.json();
-				if (current.commits[current.commits.length - 1] === item.repo.root) {
-					current.commits = [];
+		(async function () {
+			if (item.repo) {
+				try {
+					const res = await fetch(
+						`${item.pds[0]}/xrpc/com.atproto.sync.getCommitPath?did=${item.did}&earliest=${item.repo.root}`
+					);
+					current = await res.json();
+					if (current.commits[current.commits.length - 1] === item.repo.root) {
+						current.commits = [];
+					}
+				} catch (e) {
+					currentError = e.message;
 				}
-			} catch (e) {
-				currentError = e.message;
 			}
-		}
-		if (handles && handles[0]) {
-			handleVerification = await verifyHandle(handles[0], item.did);
-			historyTable = renderTable();
-		}
+		})();
+		(async function () {
+			if (handles && handles[0]) {
+				handleVerification = await verifyHandle(handles[0], item.did);
+				historyTable = renderTable();
+			}
+		})();
 	});
 </script>
 
