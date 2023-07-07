@@ -90,6 +90,14 @@ function findDIDFed(item) {
   return ff ? ff.id : null;
 }
 
+function pdsUrlFromHost(host) {
+  let https = true;
+  if (host.startsWith("localhost:")) {
+    https = false;
+  }
+  return `http${https ? "s" : ""}://${host}`;
+}
+
 function getPDSStatus(item) {
   if (!item.inspect) {
     return "unknown";
@@ -155,28 +163,39 @@ router
     perf(ctx);
   })
   .get("/pds/:host", async (ctx) => {
-    let host = ctx.params.host;
-    let https = true;
-    if (host.startsWith("localhost:")) {
-      https = false;
-    }
-    const q = { url: `http${https ? "s" : ""}://${host}` };
-    const item = await ats.db.pds.findOne(q);
+    const url = pdsUrlFromHost(ctx.params.host);
+    const item = await ats.db.pds.findOne({ url });
     if (!item) {
       return ctx.response.code = 404;
     }
     Object.assign(item, prepareObject("pds", item));
 
+    ctx.response.body = item;
+    perf(ctx);
+  })
+  .get("/pds/:host/latency", async (ctx) => {
+    const url = pdsUrlFromHost(ctx.params.host);
+    const item = await ats.db.pds.findOne({ url });
+    if (!item) {
+      return ctx.response.code = 404;
+    }
+    const host = item.url.replace(/^https?:\/\//, "");
+    const allowedRanges = ["24h", "7d", "30d"];
+    const rangesAggregation = ["3m", "15m", "1h"];
+    const userRange = ctx.request.url.searchParams.get("range");
+    const range = userRange && allowedRanges.includes(userRange)
+      ? userRange
+      : "24h";
+    const aggregation = rangesAggregation[allowedRanges.indexOf(range)];
     const query = `
       from(bucket: "ats-stats")
-        |> range(start: -1d)
+        |> range(start: -${range})
         |> filter(fn: (r) => r["_measurement"] == "pds_response_time")
-        |> filter(fn: (r) => r["pds"] == "${item.host}")
-        |> aggregateWindow(every: 3m, fn: mean, createEmpty: true)`;
+        |> filter(fn: (r) => r["pds"] == "${host}")
+        |> aggregateWindow(every: ${aggregation}, fn: mean, createEmpty: true)`;
 
-    item.responseTimesDay = await ats.influxQuery.collectRows(query);
-
-    ctx.response.body = item;
+    const data = await ats.influxQuery.collectRows(query);
+    ctx.response.body = { range, aggregation, data };
     perf(ctx);
   })
   .get("/dids", async (ctx) => {
@@ -309,34 +328,52 @@ router
     perf(ctx);
   })
   .get("/_metrics", async (ctx) => {
-    const metrics = {
-      pds_count: [await ats.db.pds.count()],
-      did_count: [await ats.db.did.count()],
-    };
-    for (const queueName of Object.keys(ats.queues)) {
-      const queue = ats.queues[queueName];
-      const getMetric = async (name) =>
-        (await queue.getMetrics(name)).meta.count;
+    const metrics = {};
 
-      metrics[`queue_metric_completed{name="${queueName}"}`] = [
-        await getMetric("completed"),
-      ];
-      metrics[`queue_metric_failed{name="${queueName}"}`] = [
-        await getMetric("failed"),
-      ];
-      metrics[`queue_active{name="${queueName}"}`] = [
-        await queue.getActiveCount(),
-      ];
-      metrics[`queue_waiting{name="${queueName}"}`] = [
-        await queue.getWaitingCount(),
-      ];
-      metrics[`queue_waiting_children{name="${queueName}"}`] = [
-        await queue.getWaitingChildrenCount(),
-      ];
-      metrics[`queue_prioritized{name="${queueName}"}`] = [
-        await queue.getPrioritizedCount(),
-      ];
-    }
+    await Promise.all([
+      (async () => {
+        metrics.did_count = [await ats.db.did.count()];
+      })(),
+      (async () => {
+        metrics.pds_count = [await ats.db.pds.count()];
+      })(),
+      (async () => {
+        const statuses = { online: 0, offline: 0, degraded: 0, unknown: 0 };
+        for (const pds of await ats.db.pds.find().toArray()) {
+          const stn = getPDSStatus(pds);
+          statuses[stn]++;
+        }
+        for (const st of Object.keys(statuses)) {
+          metrics[`pds_count{status="${st}"}`] = [statuses[st]];
+        }
+      })(),
+      (async () => {
+        for (const queueName of Object.keys(ats.queues)) {
+          const queue = ats.queues[queueName];
+          const getMetric = async (name) =>
+            (await queue.getMetrics(name)).meta.count;
+
+          metrics[`queue_metric_completed{name="${queueName}"}`] = [
+            await getMetric("completed"),
+          ];
+          metrics[`queue_metric_failed{name="${queueName}"}`] = [
+            await getMetric("failed"),
+          ];
+          metrics[`queue_active{name="${queueName}"}`] = [
+            await queue.getActiveCount(),
+          ];
+          metrics[`queue_waiting{name="${queueName}"}`] = [
+            await queue.getWaitingCount(),
+          ];
+          metrics[`queue_waiting_children{name="${queueName}"}`] = [
+            await queue.getWaitingChildrenCount(),
+          ];
+          metrics[`queue_prioritized{name="${queueName}"}`] = [
+            await queue.getPrioritizedCount(),
+          ];
+        }
+      })(),
+    ]);
     ctx.response.body = Object.keys(metrics).map((m) => {
       const [data, help, type] = metrics[m];
       return `${m} ${data}`;

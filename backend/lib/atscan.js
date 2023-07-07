@@ -38,11 +38,13 @@ export class ATScan {
     };
     console.log(`Connected to MongoDB: ${this.env.MONGODB_URL}`);
     if (this.enableNats) {
-      this.nats = await NATSConnect({
-        servers: this.env.NATS_SERVERS,
-      });
-      this.JSONCodec = JSONCodec();
-      console.log(`Connected to NATS: ${this.env.NATS_SERVERS}`);
+      await (async () => {
+        this.nats = await NATSConnect({
+          servers: this.env.NATS_SERVERS,
+        });
+        this.JSONCodec = JSONCodec();
+        console.log(`Connected to NATS: ${this.env.NATS_SERVERS}`);
+      })();
     }
     if (this.enableQueues) {
       this.queues = await makeQueues(this);

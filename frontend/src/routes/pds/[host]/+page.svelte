@@ -5,8 +5,15 @@
 	import SourceSection from '$lib/components/SourceSection.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
 	import Chart from '$lib/components/Chart.svelte';
+	import { onMount } from 'svelte';
+	import { request } from '$lib/api';
+	import { TabGroup, Tab, TabAnchor } from '@skeletonlabs/skeleton';
+	import { writable } from 'svelte/store';
 
 	export let data;
+
+	const chartResponseTimesTab = writable(0);
+	let chartResponseTimes = null;
 
 	const item = data.item;
 	const status = getPDSStatus(item);
@@ -114,47 +121,69 @@
 		}
 	};
 
-	$: chartResponseTimes = {
-		animationDuration: 250,
-		tooltip: {
-			trigger: 'axis'
-			//formatter: '{b}: {c} ms'
-		},
-		legend: {
-			data: Object.keys(crawlers).map((c) => `${crawlers[c].region} (${crawlers[c].location})`)
-		},
-		grid: {
-			left: '2%',
-			right: '2%',
-			bottom: '3%',
-			containLabel: true
-		},
-		toolbox: {
-			feature: {
-				saveAsImage: {}
-			}
-		},
-		xAxis: {
-			type: 'category',
-			boundaryGap: false,
-			data: item.responseTimesDay?.filter((r) => r.table === 0).map((r) => r._time) || []
-		},
-		yAxis: {
-			type: 'value',
-			axisLabel: {
-				formatter: '{value} ms'
-			}
-		},
-		series: Object.keys(crawlers).map((crawler) => {
-			const crawlerOptions = crawlers[crawler];
-			return {
-				name: `${crawlerOptions.region} (${crawlerOptions.location})`,
-				type: 'line',
-				//stack: 'ms',
-				data: item.responseTimesDay?.filter((r) => r.crawler === crawler).map((r) => r._value) || []
-			};
-		})
-	};
+	function renderLatencyChart(chartData) {
+		return {
+			animationDuration: 250,
+			tooltip: {
+				trigger: 'axis'
+				//formatter: '{b}: {c} ms'
+			},
+			legend: {
+				data: Object.keys(crawlers).map((c) => `${crawlers[c].region} (${crawlers[c].location})`)
+			},
+			grid: {
+				left: '2%',
+				right: '2%',
+				bottom: '3%',
+				containLabel: true
+			},
+			toolbox: {
+				feature: {
+					saveAsImage: {}
+				}
+			},
+			xAxis: {
+				type: 'category',
+				boundaryGap: false,
+				data: chartData.filter((r) => r.table === 0).map((r) => r._time) || []
+			},
+			yAxis: {
+				type: 'value',
+				axisLabel: {
+					formatter: '{value} ms'
+				}
+			},
+			series: Object.keys(crawlers).map((crawler) => {
+				const crawlerOptions = crawlers[crawler];
+				return {
+					name: `${crawlerOptions.region} (${crawlerOptions.location})`,
+					type: 'line',
+					//stack: 'ms',
+					data: chartData.filter((r) => r.crawler === crawler).map((r) => r._value) || []
+				};
+			})
+		};
+	}
+
+	const latencyConfig = ['24h', '7d', '30d'];
+
+	chartResponseTimesTab.subscribe(async (num) => {
+		chartResponseTimes = null;
+		const latencyData = await request(
+			fetch,
+			`/pds/${item.host}/latency?range=${latencyConfig[num]}`
+		);
+		if (latencyData) {
+			chartResponseTimes = renderLatencyChart(latencyData.data);
+		}
+	});
+
+	onMount(async () => {
+		const latencyData = await request(fetch, `/pds/${item.host}/latency`);
+		if (latencyData) {
+			chartResponseTimes = renderLatencyChart(latencyData.data);
+		}
+	});
 </script>
 
 <BasicPage {data} title={item.host} {breadcrumb} noHeader="true">
@@ -187,11 +216,20 @@
 	</div>
 
 	<h2 class="h2">Response times</h2>
-	{#if chartResponseTimes}
-		<div class="w-full h-64">
-			<Chart options={chartResponseTimes} />
-		</div>
-	{/if}
+
+	<TabGroup>
+		<Tab bind:group={$chartResponseTimesTab} name="tab1" value={0}>Last 24h</Tab>
+		<Tab bind:group={$chartResponseTimesTab} name="tab2" value={1}>Last 7d</Tab>
+		<Tab bind:group={$chartResponseTimesTab} name="tab3" value={2}>Last 30d</Tab>
+		<!-- Tab Panels --->
+		<svelte:fragment slot="panel">
+			<div class="w-full h-64">
+				{#if chartResponseTimes}
+					<Chart options={chartResponseTimes} />
+				{/if}
+			</div>
+		</svelte:fragment>
+	</TabGroup>
 
 	<div class="table-container">
 		<!-- Native Table Element -->
@@ -201,7 +239,7 @@
 					<th class="text-sm">Region</th>
 					<th class="text-sm">Location</th>
 					<th class="text-sm">Status</th>
-					<th class="text-sm">Response time</th>
+					<th class="text-sm">Latency</th>
 					<th class="text-sm">Last check</th>
 				</tr>
 			</thead>
