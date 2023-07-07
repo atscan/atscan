@@ -7,7 +7,7 @@
 	import Chart from '$lib/components/Chart.svelte';
 	import { onMount } from 'svelte';
 	import { request } from '$lib/api';
-	import { TabGroup, Tab, TabAnchor } from '@skeletonlabs/skeleton';
+	import { TabGroup, Tab, TabAnchor, ProgressRadial, SlideToggle } from '@skeletonlabs/skeleton';
 	import { writable } from 'svelte/store';
 
 	export let data;
@@ -226,6 +226,12 @@
 			<div class="w-full h-64">
 				{#if chartResponseTimes}
 					<Chart options={chartResponseTimes} />
+				{:else}
+					<div class="flex items-center justify-center w-full h-full">
+						<div>
+							<ProgressRadial />
+						</div>
+					</div>
 				{/if}
 			</div>
 		</svelte:fragment>

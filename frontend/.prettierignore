@@ -2,6 +2,8 @@ static
 .DS_Store
 node_modules
 /build
+/prod-build
+world.json
 /.svelte-kit
 /package
 .env

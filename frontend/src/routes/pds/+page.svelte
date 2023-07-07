@@ -1,10 +1,10 @@
 <script>
-	import { dataTableHandler, tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import { dateDistance, formatNumber } from '$lib/utils.js';
 	import { goto } from '$app/navigation';
 	import { writable } from 'svelte/store';
 	import { page } from '$app/stores';
 	import PDSTable from '$lib/components/PDSTable.svelte';
+	import PDSMap from '$lib/components/PDSMap.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
 	import { orderBy } from 'lodash';
 	import { nats, connected, codec } from '$lib/sockets.js';
@@ -197,6 +197,8 @@
 		<h2 class="h2">All instances</h2>
 	{/if}
 
+	<PDSMap data={baseData} />
+
 	<form on:submit|preventDefault={formSubmit} class="flex gap-4">
 		<input
 			class="input"
@@ -215,11 +217,13 @@
 			All PDS Instances ({formatNumber(sourceData.length)}):
 		{/if}
 	</div>
-	<PDSTable
-		{sourceData}
-		{data}
-		sorting="true"
-		on:headSelected={(e) => onHeadSelected(e)}
-		on:favoriteClick={(e) => onFavoriteClick(e)}
-	/>
+	<div class="min-h-screen">
+		<PDSTable
+			{sourceData}
+			{data}
+			sorting="true"
+			on:headSelected={(e) => onHeadSelected(e)}
+			on:favoriteClick={(e) => onFavoriteClick(e)}
+		/>
+	</div>
 </BasicPage>

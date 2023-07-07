@@ -1,7 +1,15 @@
 <script lang="ts" context="module">
+	import { createEventDispatcher } from 'svelte';
 	import * as echarts from 'echarts';
+	import '$lib/world';
+
+	// console.log(echarts.registerMap())
 
 	export { echarts };
+
+	import * as world from '../world.json';
+
+	echarts.registerMap('world', world);
 
 	import * as darkTheme from '../theme-dark.json';
 	import * as lightTheme from '../theme-light.json';
@@ -17,6 +25,7 @@
 		theme?: EChartsTheme;
 		renderer?: EChartsRenderer;
 		options: EChartsOptions;
+		dispatch: any;
 	};
 
 	const DEFAULT_OPTIONS: Partial<ChartOptions> = {
@@ -25,7 +34,7 @@
 	};
 
 	export function chartable(element: HTMLElement, echartOptions: ChartOptions) {
-		const { theme, renderer, options } = {
+		const { theme, renderer, options, dispatch } = {
 			...DEFAULT_OPTIONS,
 			...echartOptions
 		};
@@ -40,6 +49,10 @@
 		function handleResize() {
 			echartsInstance.resize();
 		}
+
+		echartsInstance.on('click', (params) => {
+			dispatch('mapClick', params);
+		});
 
 		window.addEventListener('resize', handleResize);
 
@@ -61,9 +74,10 @@
 <script lang="ts">
 	export let options: echarts.EChartsOption;
 	export let { theme, renderer } = DEFAULT_OPTIONS;
+	const dispatch = createEventDispatcher();
 </script>
 
-<div class="chart" use:chartable={{ renderer, theme, options }} />
+<div class="chart" use:chartable={{ renderer, theme, options, dispatch }} />
 
 <style>
 	.chart {
