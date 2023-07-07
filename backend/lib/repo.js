@@ -3,7 +3,7 @@ import { timeout } from "./utils.js";
 import { join } from "https://deno.land/std@0.192.0/path/posix.ts";
 import { ensureDir } from "https://deno.land/std@0.192.0/fs/ensure_dir.ts";
 import * as fsize from "npm:filesize";
-import * as zstd from 'https://deno.land/x/zstd_wasm/deno/zstd.ts';
+import * as zstd from "https://deno.land/x/zstd_wasm/deno/zstd.ts";
 import { Sha256 } from "https://deno.land/std@0.119.0/hash/sha256.ts";
 
 const filesize = fsize.filesize;
@@ -108,7 +108,9 @@ export async function saveRepo(ats, didInfo, job = null) {
     await job.log(
       `[${did}@${pds}] displayName=${
         JSON.stringify(repo.profile?.displayName)
-      } [${filesize(repo.size)}] compressed: ${carFnCompressed} [${filesize(repo.sizeCompressed)}]`,
+      } [${filesize(repo.size)}] compressed: ${carFnCompressed} [${
+        filesize(repo.sizeCompressed)
+      }]`,
     );
     await job.updateProgress(99);
   }

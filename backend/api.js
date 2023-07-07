@@ -353,7 +353,15 @@ router
   })
   .get("/:id", async (ctx) => {
     if (!ctx.params.id.match(/^did\:/)) {
-      return ctx.status = 404;
+      // try to lookup for handle
+      const handle = await ats.db.did.findOne({
+        "revs.operation.alsoKnownAs": `at://${ctx.params.id}`,
+      });
+      if (handle) {
+        return ctx.response.redirect(`/${handle.did}`);
+      } else {
+        return ctx.status = 404;
+      }
     }
     const did = ctx.params.id;
     const item = await ats.db.did.findOne({ did });
