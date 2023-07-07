@@ -15,7 +15,7 @@ async function crawlUrl(ats, url, host = "local") {
   if (host === "local") {
     try {
       const [, ms] = await timeout(
-        TIMEOUT,
+        5000,
         fetch(url, {
           method: "OPTIONS",
           headers: {
@@ -38,7 +38,9 @@ async function crawlUrl(ats, url, host = "local") {
           },
         }),
       );
-      if (res) {
+      if (!res.ok) {
+        err = res.status;
+      } else {
         data = await res.json();
       }
     } catch (e) {
@@ -77,7 +79,7 @@ async function crawlUrl(ats, url, host = "local") {
 
 async function crawl(ats) {
   const arr = await ats.db.pds.find().toArray();
-  const results = pooledMap(25, arr.slice(0, 1000), async (i) => {
+  const results = pooledMap(10, arr.slice(0, 1000), async (i) => {
     let err = null;
 
     if (i.url.match(/^https?:\/\/(localhost|example.com)/)) {
@@ -89,8 +91,10 @@ async function crawl(ats) {
     }
 
     const host = i.url.replace(/^https?:\/\//, "");
+    const dontHaveA = i.dns &&
+      (!i.dns.Answer || i.dns.Answer.filter((a) => a.type === 1).length === 0);
 
-    if (!i.dns) {
+    if (!i.dns || dontHaveA) {
       console.log("sending dns request: ", i.url);
       let dns =
         await (await fetch(`https://dns.google/resolve?name=${host}&type=A`))

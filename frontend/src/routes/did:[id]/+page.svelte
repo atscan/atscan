@@ -13,19 +13,32 @@
 	const item = data.item;
 	const asa = item.revs[item.revs.length - 1].operation?.alsoKnownAs;
 	const handles = asa ? asa.map((h) => h.replace(/^at:\/\//, '')) : [];
-	let verifiedHandles = null;
+	let handleVerification = null;
 
-	export function checkDNSHandleUrl(host) {
-		return `https://dns.google/resolve?name=_atproto.${host}&type=TXT`;
-	}
-
-	async function checkDNSHandle(did, host) {
-		const resp = await fetch(checkDNSHandleUrl(host));
-		const out = await resp.json();
-		if (!out.Answer) {
-			return false;
+	async function verifyHandle(handle, did) {
+		const verifications = [];
+		// firstly we try DNS style
+		const dnsCheckUrl = `https://dns.google/resolve?name=_atproto.${handle}&type=TXT`;
+		const dnsResp = await fetch(dnsCheckUrl);
+		const dnsData = await dnsResp.json();
+		verifications.push({
+			verified:
+				dnsData.Answer && dnsData.Answer.find((a) => a.type === 16 && a.data === `did=${did}`),
+			type: 'dns',
+			url: dnsCheckUrl
+		});
+		// if DNS verification failed, then we try http based
+		if (!verifications[0].verified) {
+			const httpCheckUrl = `https://${handle}/.well-known/atproto-did`;
+			const httpResp = await fetch(httpCheckUrl);
+			const httpString = await httpResp.text();
+			verifications.push({
+				verified: httpString.includes(did),
+				type: 'http',
+				url: httpCheckUrl
+			});
 		}
-		return out.Answer.find((a) => a.type === 16 && a.data === `did=${did}`);
+		return verifications;
 	}
 
 	function tableMapperValuesLocal(source, keys) {
@@ -45,20 +58,27 @@
 								: null;
 							if (handle) {
 								val = `@${handle}`;
-								if (!handle.match(/\.bsky\.social$/) && i === source.length - 1) {
+								if (i === source.length - 1) {
 									let hstr = null;
-									if (verifiedHandles === null) {
+									console.log(handleVerification);
+									if (handleVerification === null) {
 										hstr =
 											'<i class="fa-solid fa-clock opacity-30" alt="Loading .." title="Loading .."></i>';
-									} else if (verifiedHandles.includes(handle)) {
-										hstr =
-											'<i class="fa-solid fa-circle-check text-green-500" alt="Verified" title="Verified"></i>';
+									} else if (handleVerification && handleVerification.find((v) => v.verified)) {
+										const method = handleVerification.find((v) => v.verified);
+										hstr = `<i class="fa-solid fa-circle-check text-green-500" alt="Verified" title="Verified"></i> <span class="text-xs text-green-500 uppercase">${method.type}</span>`;
 									} else {
 										hstr =
 											'<i class="fa-solid fa-circle-xmark text-red-500" alt="Not verified" title="Not verified"></i>';
 									}
 									if (hstr) {
-										val += `<a href="${checkDNSHandleUrl(handle)}" class="ml-1.5">${hstr}</a>`;
+										if (handleVerification) {
+											val += `<a href="${
+												handleVerification.find((v) => v.verified)?.url || handleVerification[0].url
+											}" class="ml-3" target="_blank">${hstr}</a>`;
+										} else {
+											val += `<div class="inline-block ml-3">${hstr}</div>`;
+										}
 									}
 								}
 							}
@@ -117,15 +137,9 @@
 				currentError = e.message;
 			}
 		}
-		if (handles && handles[0] && !handles[0].match(/\.bsky\.social$/)) {
-			const verified = await checkDNSHandle(item.did, handles[0]);
-			if (verified) {
-				verifiedHandles = [handles[0]];
-				historyTable = renderTable();
-			} else {
-				verifiedHandles = [];
-				historyTable = renderTable();
-			}
+		if (handles && handles[0]) {
+			handleVerification = await verifyHandle(handles[0], item.did);
+			historyTable = renderTable();
 		}
 	});
 </script>
@@ -228,8 +242,17 @@
 						>
 					</tr>
 					<tr>
+						<th class="text-right">Hash</th>
+						<td>{item.repo?.carHash || '-'}</td>
+					</tr>
+					<tr>
 						<th class="text-right">Size</th>
-						<td>{filesize(item.repo?.size)}</td>
+						<td
+							>{filesize(item.repo?.size)}
+							{#if item.repo?.sizeCompressed}
+								({filesize(item.repo.sizeCompressed)} compressed)
+							{/if}
+						</td>
 					</tr>
 					<tr>
 						<th class="text-right">Records</th>

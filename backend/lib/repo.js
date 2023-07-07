@@ -3,8 +3,11 @@ import { timeout } from "./utils.js";
 import { join } from "https://deno.land/std@0.192.0/path/posix.ts";
 import { ensureDir } from "https://deno.land/std@0.192.0/fs/ensure_dir.ts";
 import * as fsize from "npm:filesize";
+import * as zstd from 'https://deno.land/x/zstd_wasm/deno/zstd.ts';
+import { Sha256 } from "https://deno.land/std@0.119.0/hash/sha256.ts";
 
 const filesize = fsize.filesize;
+await zstd.init();
 
 export async function saveRepo(ats, didInfo, job = null) {
   if (didInfo.skipRepo) {
@@ -73,14 +76,23 @@ export async function saveRepo(ats, didInfo, job = null) {
     return;
   }
 
+  repo.carHash = new Sha256().update(data).hex();
+
   // ensure db directory
   const dbPathBase = ats.env.ATSCAN_DB_PATH || "./db";
   const dbPath = join(dbPathBase, "repo");
   await ensureDir(dbPath);
 
   // write car file
-  const carFn = join(dbPath, `${did}.car`);
-  await Deno.writeFile(carFn, data);
+  //const carFn = join(dbPath, `${did}.car`);
+  //await Deno.writeFile(carFn, data);
+
+  // write compressed version
+  const compressed = zstd.compress(data);
+  repo.sizeCompressed = compressed.length;
+  repo.carCompressedHash = new Sha256().update(compressed).hex();
+  const carFnCompressed = join(dbPath, `${did}.car.zst`);
+  await Deno.writeFile(carFnCompressed, compressed);
 
   // write index file
   const indexFn = join(dbPath, `${did}.json`);
@@ -96,7 +108,7 @@ export async function saveRepo(ats, didInfo, job = null) {
     await job.log(
       `[${did}@${pds}] displayName=${
         JSON.stringify(repo.profile?.displayName)
-      } [${filesize(repo.size)}] ${carFn}`,
+      } [${filesize(repo.size)}] compressed: ${carFnCompressed} [${filesize(repo.sizeCompressed)}]`,
     );
     await job.updateProgress(99);
   }
