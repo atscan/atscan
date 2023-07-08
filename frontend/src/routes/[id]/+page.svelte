@@ -195,7 +195,7 @@
 							<th class="text-right">Avatar</th>
 							<td
 								><img
-									src={`${item.pds[0]}/xrpc/com.atproto.sync.getBlob?did=${item.did}&cid=${item.repo.profile.avatar.ref.$link}`}
+									src={`${data.config.blobApi}/${item.did}/${item.repo.profile.avatar.ref.$link}`}
 									class="w-40"
 								/></td
 							>
@@ -206,7 +206,7 @@
 							<th class="text-right">Banner</th>
 							<td
 								><img
-									src={`${item.pds[0]}/xrpc/com.atproto.sync.getBlob?did=${item.did}&cid=${item.repo.profile.banner.ref.$link}`}
+									src={`${data.config.blobApi}/${item.did}/${item.repo.profile.banner.ref.$link}`}
 									class="w-40"
 								/></td
 							>

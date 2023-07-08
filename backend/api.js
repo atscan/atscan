@@ -55,6 +55,7 @@ if (Number(ats.env.PORT) === 6677) {
 
 const HTTP_PORT = ats.env.PORT || 6677;
 const app = new Application();
+const router = new Router();
 
 function perf(ctx) {
   if (ctx.request.url.toString().startsWith("http://localhost:")) {
@@ -66,8 +67,6 @@ function perf(ctx) {
     }ms] ${ctx.request.headers.get("user-agent")}`,
   );
 }
-
-const router = new Router();
 
 function findPDSFed(item) {
   const ff = ats.ecosystem.data.federations.find((fed) => {

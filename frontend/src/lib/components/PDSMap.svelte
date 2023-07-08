@@ -1,6 +1,6 @@
 <script>
 	import Chart from '$lib/components/Chart.svelte';
-    import { goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 
 	export let data;
 

@@ -59,6 +59,11 @@ module.exports = {
       PORT: 6678
     }
   }, {
+    name: "atscan-api-blob",
+    script: "./backend/api-blob.js",
+    interpreter: "deno",
+    interpreterArgs: "run --unstable --allow-net --allow-read --allow-write --allow-env --allow-sys",
+  }, {
     name: "atscan-worker",
     script: "./backend/repo-worker.js",
     interpreter: "mullvad-exclude",
