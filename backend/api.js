@@ -9,6 +9,7 @@ await ats.init();
 ats.startDaemon();
 
 const servers = ["local", "texas", "tokyo"];
+const HTTP_PORT = ats.env.PORT || 6677;
 
 if (Number(ats.env.PORT) === 6677) {
   const didUpdatedSub = ats.nats.subscribe("ats.service.plc.did.*");
@@ -52,10 +53,6 @@ if (Number(ats.env.PORT) === 6677) {
     }
   })();
 }
-
-const HTTP_PORT = ats.env.PORT || 6677;
-const app = new Application();
-const router = new Router();
 
 function perf(ctx) {
   if (ctx.request.url.toString().startsWith("http://localhost:")) {
@@ -135,12 +132,21 @@ function prepareObject(type, item) {
       break;
 
     case "did":
+      item.current = item.revs && item.revs.length > 0
+        ? item.revs[item.revs.length - 1]
+        : null;
+      item.handle = item.current && item.current.operation?.alsoKnownAs
+        ? item.current.operation?.alsoKnownAs[0]?.replace(/^at:\/\//, "")
+        : null;
       item.srcHost = item.src.replace(/^https?:\/\//, "");
       item.fed = findDIDFed(item);
       break;
   }
   return item;
 }
+
+const app = new Application();
+const router = new Router();
 
 router
   .get("/", (ctx) => {
@@ -198,7 +204,6 @@ router
     perf(ctx);
   })
   .get("/dids", async (ctx) => {
-    const out = [];
     const query = { $and: [{}] };
 
     const availableSort = {
@@ -225,6 +230,7 @@ router
       : { lastMod: -1 };
 
     let q = ctx.request.url.searchParams.get("q")?.replace(/^@/, "");
+    let searchInfo = null;
     if (q) {
       query.$and[0].$or = [];
       const tokens = q.split(" ");
@@ -250,10 +256,37 @@ router
       }
       const text = textArr.join(" ").trim();
       if (text) {
-        query.$and[0].$or.push({ did: { $regex: text } });
+        const tsRes = await fetch(
+          "http://localhost:8108/multi_search?x-typesense-api-key=Kaey9ahMo7xoob1haivaithe2Aighoo3azohl2Joo5Aemoh4aishoogugh3Oowim",
+          {
+            method: "post",
+            body: JSON.stringify({
+              searches: [
+                {
+                  collection: "dids",
+                  exhaustive_search: true,
+                  facet_by: "",
+                  highlight_full_fields: "did,handle,prevHandles,name,desc",
+                  page: 1,
+                  per_page: 12,
+                  q: text,
+                  query_by: "did,handle,prevHandles,name,desc",
+                  sort_by: "",
+                },
+              ],
+            }),
+          },
+        );
+        const ts = await tsRes.json();
+        const didHits = ts.results[0].hits.map((hit) => hit.document.did);
+        searchInfo = ts.results[0];
+
+        query.$and[0].$or.push({ did: { $in: didHits } });
+
+        /*query.$and[0].$or.push({ did: { $regex: text } });
         query.$and[0].$or.push({
           "revs.operation.alsoKnownAs": { $regex: text },
-        });
+        });*/
       }
       if (query.$and[0].$or.length === 0) {
         delete query.$and[0].$or;
@@ -269,14 +302,26 @@ router
 
     //console.log(JSON.stringify(query, null, 2), { sort, limit });
     //console.log(JSON.stringify({ query, sort, inputSort, inputSortConfig }));
-    const count = await ats.db.did.count(query);
+    let count = await ats.db.did.count(query);
 
+    let out = [];
     for (
       const did
         of (await ats.db.did.find(query).sort(sort).limit(limit).toArray())
     ) {
       Object.assign(did, prepareObject("did", did));
       out.push(did);
+    }
+
+    if (searchInfo?.hits) {
+      out = out.map((item) => {
+        const si = searchInfo.hits.find((h) => h.document.did === item.did);
+        item.searchSort = searchInfo.hits.indexOf(si);
+        return item;
+      });
+
+      out = out.sort((x, y) => x.searchSort > y.searchSort ? 1 : -1);
+      count = searchInfo.found;
     }
 
     ctx.response.headers.append("X-Total-Count", count);
@@ -404,7 +449,7 @@ router
     if (!item) {
       return ctx.status = 404;
     }
-    item.fed = findDIDFed(item);
+    Object.assign(item, prepareObject("did", item));
     ctx.response.body = item;
     perf(ctx);
   });

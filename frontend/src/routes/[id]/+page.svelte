@@ -1,5 +1,12 @@
 <script>
-	import { dateDistance, identicon, getDIDProfileUrl, filesize, formatNumber } from '$lib/utils.js';
+	import {
+		dateDistance,
+		identicon,
+		getDIDProfileUrl,
+		filesize,
+		formatNumber,
+		blobUrl
+	} from '$lib/utils.js';
 	import { Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import SourceSection from '$lib/components/SourceSection.svelte';
@@ -195,7 +202,7 @@
 							<th class="text-right">Avatar</th>
 							<td
 								><img
-									src={`${data.config.blobApi}/${item.did}/${item.repo.profile.avatar.ref.$link}`}
+									src={blobUrl(item.did, item.repo.profile.avatar.ref.$link)}
 									class="w-40"
 								/></td
 							>
@@ -206,7 +213,7 @@
 							<th class="text-right">Banner</th>
 							<td
 								><img
-									src={`${data.config.blobApi}/${item.did}/${item.repo.profile.banner.ref.$link}`}
+									src={blobUrl(item.did, item.repo.profile.banner.ref.$link)}
 									class="w-40"
 								/></td
 							>

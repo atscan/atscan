@@ -124,12 +124,20 @@
 					></a
 				>
 				<div class="lg:ml-8 flex gap-1">
+					<!--div class="relative hidden lg:block">
+						<a
+							href="/users"
+							class="btn hover:variant-soft-primary"
+							class:bg-primary-active-token={$page.url.pathname.startsWith('/users')}
+							><span>{$i18n.t('Users')}</span></a
+						>
+					</div-->
 					<div class="relative hidden lg:block">
 						<a
 							href="/dids"
 							class="btn hover:variant-soft-primary"
-							class:bg-primary-active-token={$page.url.pathname.startsWith('/dids')}
-							><span>{$i18n.t('DIDs')}</span></a
+							class:bg-primary-active-token={$page.url.pathname.startsWith('/dids') ||
+								$page.url.pathname.startsWith('/did:plc:')}><span>{$i18n.t('DIDs')}</span></a
 						>
 					</div>
 					<div class="relative hidden lg:block">
@@ -144,8 +152,8 @@
 						<a
 							href="/feds"
 							class="btn hover:variant-soft-primary"
-							class:bg-primary-active-token={$page.url.pathname === '/feds'}
-							><span>Federations</span></a
+							class:bg-primary-active-token={$page.url.pathname === '/feds' ||
+								$page.url.pathname.startsWith('/fed/')}><span>Federations</span></a
 						>
 					</div>
 					<!--div class="relative hidden lg:block">

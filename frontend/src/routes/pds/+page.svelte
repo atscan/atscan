@@ -190,15 +190,6 @@
 </script>
 
 <BasicPage {data} title="PDS Instances">
-	{#if $preferences.favoritePDS.length > 0}
-		<h2 class="h2">Your favourites</h2>
-		<PDSTable sourceData={favoritesData} {data} on:favoriteClick={(e) => onFavoriteClick(e)} />
-
-		<h2 class="h2">All instances</h2>
-	{/if}
-
-	<PDSMap data={baseData} />
-
 	<form on:submit|preventDefault={formSubmit} class="flex gap-4">
 		<input
 			class="input"
@@ -209,12 +200,26 @@
 		/>
 		<!--button type="submit" class="btn variant-filled">Search</button-->
 	</form>
+
+	{#if !$search}
+		{#if $preferences.favoritePDS.length > 0}
+			<h2 class="h2">Your favourites</h2>
+			<PDSTable sourceData={favoritesData} {data} on:favoriteClick={(e) => onFavoriteClick(e)} />
+
+			<h2 class="h2">All instances</h2>
+		{/if}
+	{/if}
+
 	<div class="text-xl">
 		{#if $search && $search?.trim() !== ''}
 			Search for <code class="code text-2xl variant-tertiary">{$search.trim()}</code>
 			({formatNumber(sourceData.length)}):
 		{:else}
 			All PDS Instances ({formatNumber(sourceData.length)}):
+		{/if}
+
+		{#if !$search}
+			<PDSMap data={baseData} />
 		{/if}
 	</div>
 	<div class="min-h-screen">

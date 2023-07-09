@@ -1,4 +1,4 @@
-import { connect as NATSConnect, StringCodec, JSONCodec } from 'nats.ws';
+import { connect as NATSConnect, JSONCodec, StringCodec } from 'nats.ws';
 import { writable } from 'svelte/store';
 
 export let connected = writable(null);

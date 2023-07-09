@@ -193,7 +193,7 @@
 	{:else}
 		<div class="text-xl">
 			{#if $search && $search?.trim() !== ''}
-				Search for <code class="code text-2xl variant-tertiary">{$search.trim()}</code>
+				Search for <code class="code text-xl variant-tertiary">{$search.trim()}</code>
 				{#if onlySandbox}(only sandbox){/if} ({formatNumber(totalCount)}):
 			{:else}
 				All DIDs {#if onlySandbox} on sandbox{/if} ({formatNumber(totalCount)}):

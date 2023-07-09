@@ -3,6 +3,7 @@ import { minidenticon } from 'minidenticons';
 import { tableSourceValues } from '@skeletonlabs/skeleton';
 import numbro from 'numbro';
 import { filesize as _filesize } from 'filesize';
+import { config } from '$lib/config';
 
 export function dateDistance(date) {
 	return formatDistanceToNow(new Date(date));
@@ -70,4 +71,8 @@ export function getPDSStatus(row) {
 			: ['text-green-500', null, 'Online'];
 
 	return { color, ico, text };
+}
+
+export function blobUrl(did, cid) {
+	return `${config.blobApi}/${did}/${cid}`;
 }

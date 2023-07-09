@@ -13,6 +13,7 @@ export async function load({ fetch, url, parent }) {
 	if (sort) {
 		args.push(`sort=${sort}`);
 	}
+
 	const res = await fetch(`${config.api}/dids` + (args.length > 0 ? '?' + args.join('&') : ''), {
 		headers: { 'x-ats-wrapped': 'true' }
 	});

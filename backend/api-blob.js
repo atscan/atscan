@@ -5,6 +5,13 @@ import { join } from "https://deno.land/std@0.192.0/path/posix.ts";
 import { exists } from "https://deno.land/std@0.193.0/fs/exists.ts";
 import { ensureDir } from "https://deno.land/std@0.192.0/fs/ensure_dir.ts";
 import { Sha256 } from "https://deno.land/std@0.119.0/hash/sha256.ts";
+//import imageDecode from "https://deno.land/x/wasm_image_decoder@v0.0.7/mod.js";
+//import wasm_image_loader from 'npm:@saschazar/wasm-image-loader';
+//import wasm_webp from 'npm:@saschazar/wasm-webp';
+//import wasm_webp_options from 'npm:@saschazar/wasm-webp/options';
+
+//const imageLoader = await wasm_image_loader();
+//const webp = await wasm_webp();
 
 //import * as zstd from "https://deno.land/x/zstd_wasm/deno/zstd.ts";
 //await zstd.init();
@@ -81,7 +88,7 @@ router
       ctx.response.headers.set(headerKey, index.headers[headerKey]);
     }
     ctx.response.body = body;
-    perf(ctx);
+    //perf(ctx);
   });
 
 app.use(oakCors()); // Enable CORS for All Routes
