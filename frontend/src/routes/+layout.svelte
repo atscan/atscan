@@ -40,7 +40,9 @@
 		[
 			{ title: 'DIDs', url: '/dids' },
 			{ title: 'PDS Instances', url: '/pds' },
-			{ title: 'Federations', url: '/feds' }
+			{ title: 'BGS Instances', url: '/bgs' },
+			{ title: 'PLC Directories', url: '/plcs' }
+			//{ title: 'Federations', url: '/feds' }
 		],
 		[
 			{ title: 'API', url: '/api' },
@@ -145,17 +147,33 @@
 							href="/pds"
 							class="btn hover:variant-soft-primary"
 							class:bg-primary-active-token={$page.url.pathname.startsWith('/pds')}
-							><span>{$i18n.t('PDS Instances')}</span></a
+							><span>{$i18n.t('PDS')}</span></a
 						>
 					</div>
 					<div class="relative hidden lg:block">
+						<a
+							href="/bgs"
+							class="btn hover:variant-soft-primary"
+							class:bg-primary-active-token={$page.url.pathname === '/bgs' ||
+								$page.url.pathname.startsWith('/bgs/')}><span>BGS</span></a
+						>
+					</div>
+					<div class="relative hidden lg:block">
+						<a
+							href="/plcs"
+							class="btn hover:variant-soft-primary"
+							class:bg-primary-active-token={$page.url.pathname === '/plcs' ||
+								$page.url.pathname.startsWith('/plcs/')}><span>PLC</span></a
+						>
+					</div>
+					<!--div class="relative hidden lg:block">
 						<a
 							href="/feds"
 							class="btn hover:variant-soft-primary"
 							class:bg-primary-active-token={$page.url.pathname === '/feds' ||
 								$page.url.pathname.startsWith('/fed/')}><span>Federations</span></a
 						>
-					</div>
+					</div-->
 					<!--div class="relative hidden lg:block">
 						<a
 							href="/clients"

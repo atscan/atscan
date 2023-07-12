@@ -125,8 +125,8 @@
 		return {
 			animationDuration: 250,
 			tooltip: {
-				trigger: 'axis'
-				//formatter: '{b}: {c} ms'
+				trigger: 'axis',
+				valueFormatter: (val) => `${val !== undefined ? formatNumber(val) : '-'} ms`
 			},
 			legend: {
 				data: Object.keys(crawlers).map((c) => `${crawlers[c].region} (${crawlers[c].location})`)
@@ -145,7 +145,11 @@
 			xAxis: {
 				type: 'category',
 				boundaryGap: false,
-				data: chartData.filter((r) => r.table === 0).map((r) => r._time) || []
+				data:
+					chartData
+						.filter((r) => r.table === 0)
+						.map((r) => r._time)
+						.slice(0, -1) || []
 			},
 			yAxis: {
 				type: 'value',
@@ -159,7 +163,11 @@
 					name: `${crawlerOptions.region} (${crawlerOptions.location})`,
 					type: 'line',
 					//stack: 'ms',
-					data: chartData.filter((r) => r.crawler === crawler).map((r) => r._value) || []
+					data:
+						chartData
+							.filter((r) => r.crawler === crawler)
+							.map((r) => r._value)
+							.slice(0, -1) || []
 				};
 			})
 		};

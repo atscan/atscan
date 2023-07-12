@@ -1,6 +1,6 @@
 <script>
 	import { blobUrl } from '$lib/utils';
-	import { is_empty } from 'svelte/internal';
+	import Avatar from '$lib/components/Avatar.svelte';
 
 	export let items;
 	export let data;
@@ -26,12 +26,11 @@
 				<div class="flex gap-4 bg-surface-500/10 p-4" id={item.did}>
 					<div class="w-20 h-20 shrink-0">
 						<a href="/{item.did}" class="w-full h-full">
-							<img
+							<Avatar
 								id="image-{item.did}"
 								src={item.repo?.profile?.avatar?.ref?.$link
 									? blobUrl(item.did, item.repo?.profile?.avatar?.ref?.$link)
 									: '/avatar.svg'}
-								class="aspect-square object-cover rounded-full w-full h-full"
 							/>
 						</a>
 					</div>

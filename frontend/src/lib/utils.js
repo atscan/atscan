@@ -6,6 +6,7 @@ import { filesize as _filesize } from 'filesize';
 import { config } from '$lib/config';
 
 export function dateDistance(date) {
+	console.log('xxx', date);
 	return formatDistanceToNow(new Date(date));
 }
 
@@ -14,11 +15,12 @@ export function identicon(...args) {
 }
 
 numbro.setDefaults({
-	thousandSeparated: true
-	//mantissa: 2
+	thousandSeparated: true,
+	mantissa: 2,
+	trimMantissa: true
 });
-export function formatNumber(number) {
-	return numbro(number).format();
+export function formatNumber(number, ...args) {
+	return numbro(number).format(...args);
 }
 
 export function customTableMapper(source, keys, process) {

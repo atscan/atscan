@@ -23,7 +23,7 @@ if (Number(ats.env.PORT) === 6677) {
       if (!item) {
         continue;
       }
-      Object.assign(item, prepareObject("did", item));
+      Object.assign(item, await prepareObject("did", item));
       item.revs = [item.revs[item.revs.length - 1]];
       ats.nats.publish(
         `ats.api.did.${
@@ -45,7 +45,7 @@ if (Number(ats.env.PORT) === 6677) {
       if (!item) {
         continue;
       }
-      Object.assign(item, prepareObject("pds", item));
+      Object.assign(item, await prepareObject("pds", item));
       ats.nats.publish(
         `ats.api.pds.${sub === "ats.service.pds.create" ? "create" : "update"}`,
         codec.encode(item),
@@ -112,7 +112,7 @@ function getPDSStatus(item) {
   return offlineNum > 0 ? "degraded" : "online";
 }
 
-function prepareObject(type, item) {
+async function prepareObject(type, item) {
   switch (type) {
     case "pds":
       item.host = item.url.replace(/^https?:\/\//, "");
@@ -141,6 +141,21 @@ function prepareObject(type, item) {
       item.srcHost = item.src.replace(/^https?:\/\//, "");
       item.fed = findDIDFed(item);
       break;
+
+    case "bgs":
+      item.host = item.url.replace(/^https?:\/\//, "");
+      item.status = await ats.redis.hGetAll(`ats:bgs:${item.host}`);
+      break;
+
+    case "plc":
+      item.host = item.url.replace(/^https?:\/\//, "");
+      item.didsCount = await ats.db.did.countDocuments({ src: item.url });
+      item.pdsCount = await ats.db.pds.countDocuments({
+        plcs: { $in: [item.url] },
+      });
+      item.lastUpdate =
+        (await ats.db.meta.findOne({ key: `lastUpdate:${item.url}` })).value;
+      break;
   }
   return item;
 }
@@ -160,7 +175,7 @@ router
         console.error("PDS without url? ", item);
         continue;
       }
-      Object.assign(item, prepareObject("pds", item));
+      Object.assign(item, await prepareObject("pds", item));
       //item.didsCount = await ats.db.did.countDocuments({ 'pds': { $in: [ item.url ] }})
       out.push(item);
     }
@@ -173,7 +188,7 @@ router
     if (!item) {
       return ctx.response.code = 404;
     }
-    Object.assign(item, prepareObject("pds", item));
+    Object.assign(item, await prepareObject("pds", item));
 
     ctx.response.body = item;
     perf(ctx);
@@ -309,7 +324,7 @@ router
       const did
         of (await ats.db.did.find(query).sort(sort).limit(limit).toArray())
     ) {
-      Object.assign(did, prepareObject("did", did));
+      Object.assign(did, await prepareObject("did", did));
       out.push(did);
     }
 
@@ -328,6 +343,98 @@ router
     ctx.response.body = ctx.request.headers.get("x-ats-wrapped") === "true"
       ? { count, items: out }
       : out;
+    perf(ctx);
+  })
+  .get("/bgs", async (ctx) => {
+    const items = await Promise.all(
+      ats.ecosystem.data["bgs-instances"].map(async (item) => {
+        return Object.assign(item, await prepareObject("bgs", item));
+      }),
+    );
+    ctx.response.body = items;
+    perf(ctx);
+  })
+  .get("/bgs/:host", async (ctx) => {
+    const item = ats.ecosystem.data["bgs-instances"].find((f) =>
+      f.url === "https://" + ctx.params.host
+    );
+    if (!item) {
+      return ctx.response.code = 404;
+    }
+
+    Object.assign(item, await prepareObject("bgs", item));
+    ctx.response.body = item;
+    perf(ctx);
+  })
+  .get("/bgs/:host/ops", async (ctx) => {
+    const item = ats.ecosystem.data["bgs-instances"].find((f) =>
+      f.url === "https://" + ctx.params.host
+    );
+    if (!item) {
+      return ctx.response.code = 404;
+    }
+    const host = item.url.replace(/^https?:\/\//, "");
+    const allowedRanges = ["1h", "24h", "7d", "30d"];
+    const rangesAggregation = ["15s", "5m", "30m", "2h"];
+    const userRange = ctx.request.url.searchParams.get("range");
+    const range = userRange && allowedRanges.includes(userRange)
+      ? userRange
+      : "24h";
+    const aggregation = rangesAggregation[allowedRanges.indexOf(range)];
+    let query = `
+      from(bucket: "ats-nodes")
+        |> range(start: -${range})
+        |> filter(fn: (r) => r["_measurement"] == "firehose_event")
+        |> filter(fn: (r) => r["server"] == "snowden")
+        |> filter(fn: (r) => r["bgs"] == "${host}")
+        |> filter(fn: (r) => r["_field"] == "value")
+        |> derivative(unit: 1s,  nonNegative: true)
+        |> aggregateWindow(every: ${aggregation}, fn: mean, createEmpty: true)`;
+
+    if (!ctx.request.url.searchParams.get("complex")) {
+      query += `   
+        |> group(columns: ["_time"], mode:"by")
+        |> sum()
+        |> group()`;
+    }
+
+    const data = await ats.influxQuery.collectRows(query);
+    ctx.response.body = { range, aggregation, data };
+    perf(ctx);
+  })
+  .get("/bgs/:host/postLatency", async (ctx) => {
+    const item = ats.ecosystem.data["bgs-instances"].find((f) =>
+      f.url === "https://" + ctx.params.host
+    );
+    if (!item) {
+      return ctx.response.code = 404;
+    }
+    const host = item.url.replace(/^https?:\/\//, "");
+    const allowedRanges = ["1h", "24h", "7d", "30d"];
+    const rangesAggregation = ["15s", "5m", "30m", "2h"];
+    const userRange = ctx.request.url.searchParams.get("range");
+    const range = userRange && allowedRanges.includes(userRange)
+      ? userRange
+      : "24h";
+    const aggregation = rangesAggregation[allowedRanges.indexOf(range)];
+    let query = `
+      from(bucket: "ats-nodes")
+        |> range(start: -${range})
+        |> filter(fn: (r) => r["_measurement"] == "post_latency")
+        |> filter(fn: (r) => r["server"] == "snowden")
+        |> filter(fn: (r) => r["bgs"] == "${host}")
+        |> filter(fn: (r) => r["_field"] == "value")
+        |> aggregateWindow(every: ${aggregation}, fn: mean, createEmpty: true)`;
+
+    if (!ctx.request.url.searchParams.get("complex")) {
+      query += `   
+        |> group(columns: ["_time"], mode:"by")
+        |> sum()
+        |> group()`;
+    }
+
+    const data = await ats.influxQuery.collectRows(query);
+    ctx.response.body = { range, aggregation, data };
     perf(ctx);
   })
   .get("/feds", (ctx) => {
@@ -356,19 +463,23 @@ router
     ctx.response.body = item;
     perf(ctx);
   })
-  .get("/plc", async (ctx) => {
+  .get("/plcs", async (ctx) => {
     const out = [];
     for (const plc of ats.ecosystem.data["plc-directories"]) {
-      plc.host = plc.url.replace(/^https?:\/\//, "");
-      plc.didsCount = await ats.db.did.countDocuments({ src: plc.url });
-      plc.pdsCount = await ats.db.pds.countDocuments({
-        plcs: { $in: [plc.url] },
-      });
-      plc.lastUpdate =
-        (await ats.db.meta.findOne({ key: `lastUpdate:${plc.url}` })).value;
-      out.push(plc);
+      out.push(Object.assign(plc, await prepareObject("plc", plc)));
     }
     ctx.response.body = out;
+    perf(ctx);
+  })
+  .get("/plc/:host", async (ctx) => {
+    const item = ats.ecosystem.data['plc-directories'].find((f) =>
+      f.url === `https://${ctx.params.host}`
+    );
+    if (!item) {
+      return ctx.response.code = 404;
+    }
+    Object.assign(item, await prepareObject("plc", item));
+    ctx.response.body = item;    
     perf(ctx);
   })
   .get("/_metrics", async (ctx) => {
@@ -449,7 +560,7 @@ router
     if (!item) {
       return ctx.status = 404;
     }
-    Object.assign(item, prepareObject("did", item));
+    Object.assign(item, await prepareObject("did", item));
     ctx.response.body = item;
     perf(ctx);
   });
