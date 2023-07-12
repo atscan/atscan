@@ -1,20 +1,20 @@
 import {
   ComAtprotoSyncSubscribeRepos,
   subscribeRepos,
-  //SubscribeReposMessage,
 } from "npm:atproto-firehose";
-import { ATScan } from "./lib/atscan.js";
 
 import * as atprotoApi from "npm:@atproto/api";
-const { AppBskyActorProfile } = atprotoApi.default;
 
-const HTTP_PORT = "6990";
-const SERVER = "hex";
-const BGS_HOSTNAME = "bsky.social";
-
-const ats = new ATScan({ enableQueues: true });
-ats.debug = true;
-await ats.init();
+const HTTP_PORT = Deno.env.get("ATSCAN_FIREHOSE_PORT") || "6990";
+const SERVER = Deno.env.get("ATSCAN_FIREHOSE_SERVER") || "hex";
+const BGS_HOSTNAME = Deno.env.get("ATSCAN_FIREHOSE_BGS_HOSTNAME") ||
+  "bsky.social";
+const TICK_REPO = Deno.env.get("ATSCAN_FIREHOSE_TICK_REPO") ||
+  "did:plc:pzovq4a22hpji6pfzofgk7gc";
+const TICK_ARRAY_SIZE = parseInt(
+  Deno.env.get("ATSCAN_FIREHOSE_TICK_ARRAY_SIZE") || 5,
+);
+//const TICK_POST_PATH = Deno.env.get('ATSCAN_FIREHOSE_TICK_POST') || 'app.bsky.feed.post/3k2bwjgozws2q';
 
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 
@@ -23,9 +23,11 @@ const router = new Router();
 
 let totalCommits = 0;
 const counters = {};
+const postLatency = [];
 
 const client = subscribeRepos(`wss://${BGS_HOSTNAME}`, { decodeRepoOps: true });
 client.on("message", (m) => {
+  const receivedTime = new Date();
   if (ComAtprotoSyncSubscribeRepos.isHandle(m)) {
     console.log("handle", m);
   }
@@ -41,28 +43,23 @@ client.on("message", (m) => {
           type = delMatch[1];
         }
       }
+      if (
+        m.repo === TICK_REPO && op.path.startsWith("app.bsky.feed.post/") &&
+        op.action === "create"
+      ) {
+        const postDate = new Date(op.payload.createdAt);
+        const latency = receivedTime - postDate;
+        if (postLatency.length >= TICK_ARRAY_SIZE) {
+          postLatency.shift();
+        }
+        postLatency.push(latency);
+        console.log(JSON.stringify(postLatency));
+      }
       if (type) {
         if (!counters[op.action][type]) {
           counters[op.action][type] = 0;
         }
         counters[op.action][type]++;
-      }
-      if (op.payload?.$type === "app.bsky.actor.profile") {
-        if (AppBskyActorProfile.isRecord(op.payload)) {
-          const did = m.repo;
-          const didObj = await ats.db.did.findOne({ did });
-          if (!didObj) {
-            return;
-          }
-          await ats.queues.repoSnapshot.add(did, didObj, {
-            //priority: 1,
-            jobId: did,
-            priority: 10,
-            delay: 15,
-          });
-          console.log(`Added to queue: ${did}`);
-          //console.log(`Profile updated: ${m.repo}`);
-        }
       }
     });
     totalCommits++;
@@ -74,12 +71,16 @@ router
     ctx.response.body = counters;
   })
   .get("/_metrics", (ctx) => {
+    const avgLatency = postLatency.reduce((ps, a) => ps + a, 0) /
+      postLatency.length;
     ctx.response.body = Object.keys(counters).map((mod) => {
       return Object.keys(counters[mod]).map((type) => {
         const val = counters[mod][type];
         return `firehose_event{server="${SERVER}",bgs="${BGS_HOSTNAME}",mod="${mod}",type="${type}"} ${val}`;
       }).filter((v) => v.trim()).join("\n");
-    }).join("\n") + "\n";
+    }).join("\n") + "\n" +
+      `post_latency{server="${SERVER}",bgs="${BGS_HOSTNAME}"} ${avgLatency}` +
+      "\n";
   });
 
 app.use(router.routes());
