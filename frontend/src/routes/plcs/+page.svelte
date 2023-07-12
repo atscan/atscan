@@ -7,7 +7,7 @@
 	export let data;
 
 	function tableMap({ val, key, row }) {
-		console.log({ key, val });
+		//console.log({ key, val });
 		if (key === 'world') {
 			val = `<span class="badge variant-filled bg-ats-fed-${row.federation} dark:bg-ats-fed-${row.federation} opacity-70 text-white dark:text-black ucfirst">${row.federation}</span>`;
 		}
@@ -25,8 +25,9 @@
 				val += ` <div class="text-xs inline-block ml-2">(+${formatNumber(row.pdsCount)})</div>`;
 			}
 		}
-		if (key === 'time') {
-			val = row.lastUpdate ? `<span class="text-xs">${dateDistance(row.lastUpdate)} ago</a>` : '-';
+		if (key === 'lastUpdate') {
+			//val = row.lastUpdate ?  : '-';
+			val = val ? `<span class="text-xs">${dateDistance(val)} ago</span>` : '-';
 		}
 		if (key === 'url_raw') {
 			val = `/plc/${row.host}`;
@@ -34,13 +35,13 @@
 		return val;
 	}
 
-	const sourceData = data.plcs.sort((x, y) => (x.didsCount > y.didsCount ? -1 : 1));
-	const tableSimple = {
+	$: sourceData = data.plcs.sort((x, y) => (x.didsCount > y.didsCount ? -1 : 1));
+	$: tableSimple = {
 		// A list of heading labels.
 		head: ['Federation', 'Host', 'DIDs', 'PDS', 'Last mod'],
 		body: customTableMapper(
 			sourceData,
-			['world', 'host', 'didsCount', 'pdsCount', 'time'],
+			['world', 'host', 'didsCount', 'pdsCount', 'lastUpdate'],
 			tableMap
 		),
 		meta: customTableMapper(sourceData, ['id', 'url_raw'], tableMap)

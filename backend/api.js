@@ -472,14 +472,14 @@ router
     perf(ctx);
   })
   .get("/plc/:host", async (ctx) => {
-    const item = ats.ecosystem.data['plc-directories'].find((f) =>
+    const item = ats.ecosystem.data["plc-directories"].find((f) =>
       f.url === `https://${ctx.params.host}`
     );
     if (!item) {
       return ctx.response.code = 404;
     }
     Object.assign(item, await prepareObject("plc", item));
-    ctx.response.body = item;    
+    ctx.response.body = item;
     perf(ctx);
   })
   .get("/_metrics", async (ctx) => {
