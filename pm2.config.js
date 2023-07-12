@@ -68,7 +68,20 @@ module.exports = {
     script: "./backend/repo-worker.js",
     interpreter: "mullvad-exclude",
     interpreterArgs: "deno run --unstable --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-sys ./backend/repo-worker.js",
-    instances: 4,
+    instances: 6,
+  }, {
+    name: "atscan-tick-sandbox",
+    script: "./backend/tick.js",
+    interpreter: "deno",
+    interpreterArgs: "run --unstable --allow-net --allow-read --allow-env"
+  }, {
+    name: "atscan-tick-bluesky",
+    script: "./backend/tick.js",
+    interpreter: "deno",
+    interpreterArgs: "run --unstable --allow-net --allow-read --allow-env",
+    env: {
+      ATSCAN_TICK_ENV: 'BLUESKY'
+    }
   }, {
     name: "bull-ui",
     script: "index.js",

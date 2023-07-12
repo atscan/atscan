@@ -12,7 +12,7 @@ plc-crawl:
 	deno run --unstable --allow-net --allow-read --allow-env --allow-sys ./backend/plc-crawler.js
 
 index:
-	deno run --unstable --allow-net --allow-read --allow-env --allow-sys ./backend/indexer.js
+	deno run --unstable --allow-net --allow-read --allow-env --allow-sys --allow-ffi ./backend/indexer.js
 
 index-daemon:
 	deno run --unstable --allow-net --allow-read --allow-env --allow-sys ./backend/indexer.js daemon
@@ -28,6 +28,9 @@ repo-worker:
 
 firehose:
 	deno run --unstable --allow-net --allow-read --allow-env --allow-sys --allow-ffi ./backend/firehose.js
+
+tick:
+	deno run --unstable --allow-net --allow-read --allow-env ./backend/tick.js
 
 fe-rebuild:
 	cd frontend && npm run build
