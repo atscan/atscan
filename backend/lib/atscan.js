@@ -3,6 +3,7 @@ import { load as envLoad } from "https://deno.land/std@0.192.0/dotenv/mod.ts";
 import { parse, stringify } from "https://deno.land/std@0.192.0/yaml/mod.ts";
 import { MongoClient } from "npm:mongodb";
 import { InfluxDB } from "npm:@influxdata/influxdb-client";
+import { createClient as redisCreateClient } from "npm:redis@^4.6";
 import { makeQueues } from "./queues.js";
 import {
   connect as NATSConnect,
@@ -16,18 +17,28 @@ export class ATScan {
     this.debug = opts.debug;
     this.enableQueues = opts.enableQueues || false;
     this.enableNats = opts.enableNats || false;
-    console.log(this.enableQueues);
+    //console.log(this.enableQueues);
   }
 
   async init() {
     this.env = Object.assign(Deno.env.toObject(), await envLoad());
     await this.ecosystemLoad();
+    // redis
+    const redisUrl = "redis://localhost:6379";
+    this.redis = redisCreateClient({
+      url: redisUrl,
+      pingInterval: 1000,
+    });
+    await this.redis.connect();
+    console.log(`Connected to Redis: ${redisUrl}`);
+    // influxdb
     const influxConfig = {
       url: this.env.INFLUXDB_HOST,
       token: this.env.INFLUXDB_TOKEN,
     };
     this.influx = new InfluxDB(influxConfig);
     this.influxQuery = this.influx.getQueryApi(this.env.INFLUXDB_ORG);
+    // monbodb
     this.client = new MongoClient(this.env.MONGODB_URL);
     await this.client.connect();
     this.dbRaw = this.client.db("test");
@@ -37,6 +48,7 @@ export class ATScan {
       meta: this.dbRaw.collection("meta"),
     };
     console.log(`Connected to MongoDB: ${this.env.MONGODB_URL}`);
+    // nats - optional
     if (this.enableNats) {
       await (async () => {
         this.nats = await NATSConnect({
