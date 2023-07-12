@@ -6,7 +6,6 @@ import { filesize as _filesize } from 'filesize';
 import { config } from '$lib/config';
 
 export function dateDistance(date) {
-	console.log('xxx', date);
 	return formatDistanceToNow(new Date(date));
 }
 
