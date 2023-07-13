@@ -10,6 +10,7 @@
 	import { nats, connected, codec } from '$lib/sockets.js';
 	import { preferences } from '$lib/stores.js';
 	import { onMount, onDestroy } from 'svelte';
+	import { SlideToggle } from '@skeletonlabs/skeleton';
 
 	export let data;
 
@@ -205,8 +206,18 @@
 		{#if $preferences.favoritePDS.length > 0}
 			<h2 class="h2">Your favourites</h2>
 			<PDSTable sourceData={favoritesData} {data} on:favoriteClick={(e) => onFavoriteClick(e)} />
+		{/if}
 
-			<h2 class="h2">All instances</h2>
+		<div class="flex">
+			<div class="grow"><h2 class="h2">PDS Worldwide</h2></div>
+			<div class="">
+				<SlideToggle name="slider-label" bind:checked={$preferences.pdsShowMap} size="sm"
+					>Show map</SlideToggle
+				>
+			</div>
+		</div>
+		{#if $preferences.pdsShowMap}
+			<PDSMap data={baseData} />
 		{/if}
 	{/if}
 
@@ -216,10 +227,6 @@
 			({formatNumber(sourceData.length)}):
 		{:else}
 			All PDS Instances ({formatNumber(sourceData.length)}):
-		{/if}
-
-		{#if !$search}
-			<PDSMap data={baseData} />
 		{/if}
 	</div>
 	<div class="min-h-screen">

@@ -48,7 +48,18 @@
 			val = arr.reverse().join(' ');
 		}
 		if (key === 'host') {
-			val = `<a href="/pds/${val}" class=""><span class="font-semibold text-lg">${val}</span></a>`;
+			val = `<div class="inline-block align-top"><a href="/pds/${val}" class=""><span class="font-semibold text-lg">${val}</span></a>`;
+
+			if (
+				row.inspect?.current.data?.availableUserDomains &&
+				row.inspect.current.data.availableUserDomains.length > 0
+			) {
+				val +=
+					'<div class="text-xs opacity-75">' +
+					row.inspect?.current.data?.availableUserDomains.join(', ') +
+					'</div>';
+			}
+			val += `</div>`;
 		}
 		if (key === 'responseTime') {
 			val = row.responseTime ? '~' + Math.round(row.responseTime) + 'ms' : '-';
@@ -61,16 +72,18 @@
 					  }" class="inline-block mr-2" />`
 					: '-';
 			if (row.ip && row.ip.city) {
-				val += `${row.ip.city} - `;
+				val += `${row.ip.city}, ${row.ip.country}`;
 			}
 			if (row.ip) {
 				const dnsIp = row.dns ? row.dns.Answer?.filter((a) => a.type === 1)[0].data : null;
-				val +=
+				/*val +=
 					`<a href="http://ipinfo.io/${dnsIp}" target="_blank" class="anchor">${dnsIp}</a>` || '-';
 				if (row.ip && row.ip.regionName) {
 					val += ' (' + row.ip.regionName + ')';
-				}
-				val += `<br /><span class="text-xs">${row.ip?.org || 'n/a'}</span>`;
+				}*/
+				val += `<br /><span class="text-xs opacity-75">${
+					row.ip?.org?.replace(/^AS\d+ /, '') || 'n/a'
+				}</span>`;
 			}
 		}
 		if (key === 'didsCount') {
@@ -89,6 +102,9 @@
 					? dateDistance(row.inspect.lastOnline) + ' ago'
 					: '-'
 			}</span>`;
+		}
+		if (key === 'time') {
+			val = `<span class="text-xs">${dateDistance(row.time)} ago</span>`;
 		}
 		if (key === 'host_raw') {
 			val = row.host;
@@ -112,9 +128,10 @@
 			['Host', 'host'],
 			['DIDs', 'didsCount'],
 			['Size', 'size'],
-			['Location', 'country'],
-			['PLCs (User Domains)', 'plcs'],
+			['Location / Provider', 'country'],
+			//['PLCs (User Domains)', 'plcs'],
 			['Latency', 'responseTime'],
+			['First seen', 'time'],
 			['Last Online', 'lastOnline']
 		],
 		body: customTableMapper(
@@ -126,8 +143,9 @@
 				'didsCount',
 				'size',
 				'location',
-				'plcs',
+				//'plcs',
 				'responseTime',
+				'time',
 				'lastOnline'
 			],
 			tableMap

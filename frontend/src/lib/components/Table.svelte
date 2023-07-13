@@ -86,7 +86,7 @@
 	$: classesTable = `${element} ${text} ${color}`;
 </script>
 
-<div class="table-container {classesBase}">
+<div class="table-container {classesBase}" id="table">
 	<!-- Table -->
 	<!-- prettier-ignore -->
 	<table
@@ -134,10 +134,12 @@
 							aria-colindex={cellIndex + 1}
 							tabindex={cellIndex === 0 ? 0 : -1}
 						>
+
 							{@html cell ? cell : '-'}
 							{#if favoriteColumn !== null && favoriteColumn === cellIndex}
-								<i class="favorite fa-regular fa-star ml-1 {source.meta[rowIndex][3] !== undefined && source.meta[rowIndex][3] ? 'inline-block active text-yellow-500 opacity-100 hover:text-red-500' : 'opacity-50 hidden hover:text-green-500'} hover:opacity-100" on:click={(ev) => onFavoriteClick(ev, source.meta[rowIndex][0])}></i>
+								<div class="inline-block"><i class="favorite fa-regular fa-star ml-1 {source.meta[rowIndex][3] !== undefined && source.meta[rowIndex][3] ? 'inline-block active text-yellow-500 opacity-100 hover:text-red-500' : 'opacity-50 hidden hover:text-green-500'} hover:opacity-100" on:click={(ev) => onFavoriteClick(ev, source.meta[rowIndex][0])}></i></div>
 							{/if}
+
 						</td>
 					{/each}
 				</tr>
