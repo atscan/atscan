@@ -6,9 +6,10 @@ This is a monorepo containing the backend and frontend of ATScan.
 
 The current version is hosted at [atscan.net](https://atscan.net). You can follow us on Bluesky as [@atscan.net](https://bsky.app/profile/did:plc:ft3tl5dxjn4psdk6asenqn3r).
 
-## Our libraries
+## Our software
 
-- [broadsky](https://github.com/atscan/broadsky) - Bridge Streaming Wire Protocol (v0) to NATS and other protocols
+- [broadsky](https://github.com/atscan/broadsky) (Go) - Bridge Streaming Wire Protocol (v0) to NATS and other protocols
+- [blobd](https://github.com/atscan/blobd) (Go) - AT Protocol Blob-serving HTTP Server in Go
 
 ## Technology stack
 
