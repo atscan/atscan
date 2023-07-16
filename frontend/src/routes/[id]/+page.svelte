@@ -13,10 +13,10 @@
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import PDSTable from '$lib/components/PDSTable.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
-	import BlobInfo from '$lib/components/BlobInfo.svelte';
 	import { onMount } from 'svelte';
 	import { requestBlob } from '$lib/api';
 	import Image from '$lib/components/Image.svelte';
+	import { config } from '$lib/config';
 
 	export let data;
 
@@ -162,7 +162,6 @@
 	});
 
 	async function loadBlobInfo(t) {
-		console.log('xxx');
 		if (item.repo?.profile && item.repo?.profile[t]) {
 			blobInfo[t] = await requestBlob(
 				fetch,
@@ -226,7 +225,22 @@
 												on:load={() => loadBlobInfo(bt)}
 											/>
 										</a>
-										<BlobInfo data={blobInfo[bt]} />
+										<div class="ml-4 mt-2 text-sm">
+											{#if blobInfo[bt]}
+												Size: {filesize(blobInfo[bt].size)}<br />
+												Format: {blobInfo[bt].mime}
+												{#if blobInfo[bt].image}({blobInfo[bt].image.width}x{blobInfo[bt].image
+														.height}px){/if}<br />
+												<a
+													href="{config.blobApi}/{item.did}/{item.repo.profile[bt].ref
+														.$link}/inspect"
+													class="anchor"
+													target="_blank">Inspect blob</a
+												>
+											{:else}
+												<span class="opacity-50 animate-pulse">Loading info about blob ..</span>
+											{/if}
+										</div>
 									</div>
 								</td>
 							</tr>
