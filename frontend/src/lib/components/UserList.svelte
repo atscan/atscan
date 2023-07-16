@@ -30,7 +30,7 @@
 								id="image-{item.did}"
 								src={item.repo?.profile?.avatar?.ref?.$link
 									? blobUrl(item.did, item.repo?.profile?.avatar?.ref?.$link) +
-									  '?format=webp&size=160'
+									  '?format=webp&width=160'
 									: '/avatar.svg'}
 							/>
 						</a>

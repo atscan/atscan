@@ -16,6 +16,7 @@
 	import BlobInfo from '$lib/components/BlobInfo.svelte';
 	import { onMount } from 'svelte';
 	import { requestBlob } from '$lib/api';
+	import Image from '$lib/components/Image.svelte';
 
 	export let data;
 
@@ -158,15 +159,17 @@
 				historyTable = renderTable();
 			}
 		})();
-		['avatar', 'banner'].map(async (t) => {
-			if (item.repo?.profile && item.repo?.profile[t]) {
-				blobInfo[t] = await requestBlob(
-					fetch,
-					`/${item.did}/${item.repo.profile[t].ref.$link}/inspect`
-				);
-			}
-		});
 	});
+
+	async function loadBlobInfo(t) {
+		console.log('xxx');
+		if (item.repo?.profile && item.repo?.profile[t]) {
+			blobInfo[t] = await requestBlob(
+				fetch,
+				`/${item.did}/${item.repo.profile[t].ref.$link}/inspect`
+			);
+		}
+	}
 </script>
 
 <BasicPage {data} title={item.did} noHeader="true" {breadcrumb}>
@@ -208,32 +211,27 @@
 						<th class="text-right">Description</th>
 						<td>{item.repo.profile.description || '-'}</td>
 					</tr>
-					{#if item.repo.profile.avatar}
-						<tr>
-							<th class="text-right">Avatar</th>
-							<td>
-								<div class="flex">
-									<img
-										src={blobUrl(item.did, item.repo.profile.avatar.ref.$link) +
-											'?format=webp&size=160'}
-										class="w-40"
-									/>
-									<BlobInfo data={blobInfo.avatar} />
-								</div>
-							</td>
-						</tr>
-					{/if}
-					{#if item.repo.profile.banner}
-						<tr>
-							<th class="text-right">Banner</th>
-							<td
-								><div class="flex">
-									<img src={blobUrl(item.did, item.repo.profile.banner.ref.$link)} class="w-40" />
-									<BlobInfo data={blobInfo.banner} />
-								</div>
-							</td>
-						</tr>
-					{/if}
+					{#each ['avatar', 'banner'] as bt}
+						{#if item.repo.profile[bt]}
+							<tr>
+								<th class="text-right capitalize">{bt}</th>
+								<td>
+									<div class="flex">
+										<a href={blobUrl(item.did, item.repo.profile[bt].ref.$link)}>
+											<Image
+												src={blobUrl(item.did, item.repo.profile[bt].ref.$link) +
+													'?format=webp&width=320'}
+												divClass="w-40 {bt === 'banner' ? 'h-20' : 'h-40'}"
+												imgClass="object-contain"
+												on:load={() => loadBlobInfo(bt)}
+											/>
+										</a>
+										<BlobInfo data={blobInfo[bt]} />
+									</div>
+								</td>
+							</tr>
+						{/if}
+					{/each}
 				</tbody>
 			</table>
 		</div>

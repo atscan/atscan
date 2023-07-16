@@ -116,7 +116,7 @@
 		</thead>
 		<!-- Body -->
 		<tbody class="table-body {regionBody}">
-			{#each source.body as row, rowIndex}
+			{#each source.body as row, rowIndex (source.meta[rowIndex][0])}
 				<!-- Row -->
 				<!-- prettier-ignore -->
 				<tr

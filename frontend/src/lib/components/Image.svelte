@@ -1,6 +1,12 @@
 <script>
-	import { onMount, beforeUpdate, afterUpdate } from 'svelte';
+	import { ProgressBar } from '@skeletonlabs/skeleton';
+	import { onMount, beforeUpdate, afterUpdate, createEventDispatcher } from 'svelte';
+
 	export let src;
+	export let divClass = '';
+	export let imgClass = '';
+
+	const dispatch = createEventDispatcher();
 
 	let loaded = false;
 	let failed = false;
@@ -27,6 +33,8 @@
 		img.onload = () => {
 			loading = false;
 			loaded = true;
+
+			dispatch('load', {});
 		};
 		img.onerror = () => {
 			loading = false;
@@ -39,8 +47,12 @@
 	});
 </script>
 
-{#if loaded}
-	<img {src} class="ratio-square w-full h-full rounded-full object-cover" alt="avatar" />
-{:else if loading}
-	<div class="bg-white/20 w-full h-full rounded-full" />
-{/if}
+<div class={divClass}>
+	{#if loaded}
+		<img {src} class="w-full h-full {imgClass}" alt="image" />
+	{:else if loading}
+		<div class="w-full h-full p-8">
+			<ProgressBar />
+		</div>
+	{/if}
+</div>
