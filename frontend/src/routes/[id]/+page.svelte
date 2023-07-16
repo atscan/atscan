@@ -7,13 +7,15 @@
 		formatNumber,
 		blobUrl
 	} from '$lib/utils.js';
-	import { Table } from '@skeletonlabs/skeleton';
+	import { AppRail, Table } from '@skeletonlabs/skeleton';
 	import { tableMapperValues, tableSourceValues } from '@skeletonlabs/skeleton';
 	import SourceSection from '$lib/components/SourceSection.svelte';
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import PDSTable from '$lib/components/PDSTable.svelte';
 	import BasicPage from '$lib/components/BasicPage.svelte';
+	import BlobInfo from '$lib/components/BlobInfo.svelte';
 	import { onMount } from 'svelte';
+	import { requestBlob } from '$lib/api';
 
 	export let data;
 
@@ -127,6 +129,7 @@
 
 	let current;
 	let currentError;
+	let blobInfo = {};
 
 	$: records =
 		item.repo && item.repo.collections
@@ -155,6 +158,14 @@
 				historyTable = renderTable();
 			}
 		})();
+		['avatar', 'banner'].map(async (t) => {
+			if (item.repo?.profile && item.repo?.profile[t]) {
+				blobInfo[t] = await requestBlob(
+					fetch,
+					`/${item.did}/${item.repo.profile[t].ref.$link}/inspect`
+				);
+			}
+		});
 	});
 </script>
 
@@ -200,23 +211,27 @@
 					{#if item.repo.profile.avatar}
 						<tr>
 							<th class="text-right">Avatar</th>
-							<td
-								><img
-									src={blobUrl(item.did, item.repo.profile.avatar.ref.$link)}
-									class="w-40"
-								/></td
-							>
+							<td>
+								<div class="flex">
+									<img
+										src={blobUrl(item.did, item.repo.profile.avatar.ref.$link) +
+											'?format=webp&size=160'}
+										class="w-40"
+									/>
+									<BlobInfo data={blobInfo.avatar} />
+								</div>
+							</td>
 						</tr>
 					{/if}
 					{#if item.repo.profile.banner}
 						<tr>
 							<th class="text-right">Banner</th>
 							<td
-								><img
-									src={blobUrl(item.did, item.repo.profile.banner.ref.$link)}
-									class="w-40"
-								/></td
-							>
+								><div class="flex">
+									<img src={blobUrl(item.did, item.repo.profile.banner.ref.$link)} class="w-40" />
+									<BlobInfo data={blobInfo.banner} />
+								</div>
+							</td>
 						</tr>
 					{/if}
 				</tbody>

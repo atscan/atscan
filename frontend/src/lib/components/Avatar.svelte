@@ -41,7 +41,7 @@
 </script>
 
 {#if loaded}
-	<img {src} class="ratio-square w-full h-full rounded-full object-contains" />
+	<img {src} class="ratio-square w-full h-full rounded-full object-cover" />
 {:else if loading}
 	<div class="bg-white/20 w-full h-full rounded-full" />
 {/if}
