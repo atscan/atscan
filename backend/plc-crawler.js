@@ -99,7 +99,7 @@ async function processPlcExport(ats, plc, after = null) {
       const didId = [data.did, didRev].join("@");
       if (pdsFound) {
         if (!pdsFound.plcs.includes(plc.url)) {
-          pdsFound.plcs.push(plcUrl);
+          pdsFound.plcs.push(plc.url);
           console.log(
             `${
               (new Date()).toISOString()

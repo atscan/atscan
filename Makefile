@@ -45,6 +45,10 @@ install:
 	deno install --unstable -A -f -n ats ./cli/ats.js
 	deno install --unstable -A -f -n ats-repo ./cli/ats-repo.js
 
+did-snapshot:
+	deno run -A ./backend/did-snapshot.js
+	tree /corn/atscan-db/snapshots/public/did
+
 typesense-init:
 	deno run --unstable --allow-net --allow-read ./backend/typesense-init.js
 
