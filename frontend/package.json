@@ -28,7 +28,7 @@
 		"minidenticons": "^4.2.0",
 		"nats.ws": "^1.16.1",
 		"numbro": "^2.3.6",
-		"postcss": "^8.4.24",
+		"postcss": "^8.4.31",
 		"prettier": "^2.8.0",
 		"prettier-plugin-svelte": "^2.8.1",
 		"svelte": "^3.54.0",
